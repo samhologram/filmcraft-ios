@@ -336,7 +336,25 @@ fn export_params(path: &str, options_json: &str) -> Result<Value, BridgeError> {
     }
     let mut p = json!({"path": path, "wait": false});
     const FORMATS: [&str; 19] = [
-        "h264", "hevc", "prores", "dnxhr", "apv", "mjpeg", "mxf-op1a", "mxf-opatom", "png", "tiff", "bmp", "jpg", "tga", "dpx", "exr", "gif", "wav", "aiff", "aac",
+        "h264",
+        "hevc",
+        "prores",
+        "dnxhr",
+        "apv",
+        "mjpeg",
+        "mxf-op1a",
+        "mxf-opatom",
+        "png",
+        "tiff",
+        "bmp",
+        "jpg",
+        "tga",
+        "dpx",
+        "exr",
+        "gif",
+        "wav",
+        "aiff",
+        "aac",
     ];
     if let Some(preset) = o.get("preset").and_then(Value::as_str).map(str::trim).filter(|s| !s.is_empty()) {
         let lower = preset.to_ascii_lowercase();
@@ -566,9 +584,7 @@ impl ProjectHandle {
             let id = filmcraft_engine::project::ClipId(clip_id);
             let s = &i.session;
             let in_active = s.active_sequence().and_then(|q| q.all_tracks().find_map(|t| t.item(id)));
-            let found = in_active.or_else(|| {
-                s.project.items.values().filter_map(|it| it.as_sequence()).find_map(|q| q.all_tracks().find_map(|t| t.item(id)))
-            });
+            let found = in_active.or_else(|| s.project.items.values().filter_map(|it| it.as_sequence()).find_map(|q| q.all_tracks().find_map(|t| t.item(id))));
             let clip = found.ok_or_else(|| fail(format!("no such clip {clip_id}")))?;
             serde_json::to_string(&clip.effects).map_err(|e| fail(e.to_string()))
         })

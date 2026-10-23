@@ -138,7 +138,7 @@ fn hostile_inputs_error_not_panic() {
     let _ = h.state();
     assert!(h.import_files(vec![]).is_err());
     assert!(h.import_files(vec!["/nonexistent/file.mp4".into()]).is_err());
-    assert_eq!(format_timecode(i64::MIN, 0, 0).len() > 0, true);
+    assert!(!format_timecode(i64::MIN, 0, 0).is_empty());
     assert_eq!(format_timecode(0, 24, 1), "00:00:00:00");
     let _ = h.relink_missing("/nonexistent".into());
 }

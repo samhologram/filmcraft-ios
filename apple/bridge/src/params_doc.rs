@@ -305,7 +305,7 @@ fn classify_pieces(f: &mut ParamField, pieces: &[&[char]]) {
     f.is_optional = f.is_optional || pieces.iter().any(|p| trim_chars(p).last() == Some(&'?'));
 }
 
-fn trim_opt<'a>(p: &'a [char]) -> &'a [char] {
+fn trim_opt(p: &[char]) -> &[char] {
     let p = trim_chars(p);
     match p.last() {
         Some('?') => trim_chars(sub(p, 0, p.len() - 1)),
@@ -349,24 +349,20 @@ fn classify(f: &mut ParamField, ty: &[char]) {
     // quoted literal(s): a choice list or a fixed string
     if let Some(q) = unquote(core) {
         let parts: Vec<String> = q.split('|').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect();
-        if parts.len() > 1 {
-            f.kind = "choice".into();
-            f.choices = parts;
-        } else {
-            f.kind = "choice".into();
-            f.choices = parts;
-        }
+        // one literal = a fixed value, shown as a one-item choice
+        f.kind = "choice".into();
+        f.choices = parts;
         return;
     }
     // range `a..b`
-    if let Some((a, b)) = core_s.split_once("..") {
-        if let (Some(lo), Some(hi)) = (parse_num(a), parse_num(b)) {
-            f.min = Some(lo);
-            f.max = Some(hi);
-            let int = !a.contains('.') && !b.contains('.') && !f.default_json.as_deref().is_some_and(|d| d.contains('.'));
-            f.kind = if int { "integer" } else { "number" }.into();
-            return;
-        }
+    if let Some((a, b)) = core_s.split_once("..")
+        && let (Some(lo), Some(hi)) = (parse_num(a), parse_num(b))
+    {
+        f.min = Some(lo);
+        f.max = Some(hi);
+        let int = !a.contains('.') && !b.contains('.') && !f.default_json.as_deref().is_some_and(|d| d.contains('.'));
+        f.kind = if int { "integer" } else { "number" }.into();
+        return;
     }
     match core_s.as_str() {
         "str" | "string" | "text" | "path" => f.kind = "string".into(),
@@ -473,7 +469,8 @@ mod tests {
 
     #[test]
     fn garbage_never_panics() {
-        for s in ["{", "}", "{\"", "{\"a\":", "{\"a\":[", "{\"a\":\"b|", "{\"a\":0..", "{,,,}", "{\"\":}", "{\"a\":|}", "{ \"é\": é? }", "{\"a\":\"\"|\"\"}"] {
+        for s in ["{", "}", "{\"", "{\"a\":", "{\"a\":[", "{\"a\":\"b|", "{\"a\":0..", "{,,,}", "{\"\":}", "{\"a\":|}", "{ \"é\": é? }", "{\"a\":\"\"|\"\"}"]
+        {
             let _ = parse_params(s);
         }
     }

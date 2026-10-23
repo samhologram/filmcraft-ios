@@ -98,11 +98,8 @@ pub fn timeline(s: &Session, revision: u64) -> TimelineSnapshot {
             });
         }
     }
-    let markers = seq
-        .markers
-        .iter()
-        .map(|m| MarkerInfo { id: m.id.0, at: m.start.0, duration: m.duration.0, name: m.name.clone(), color: Some(hex(m.color)) })
-        .collect();
+    let markers =
+        seq.markers.iter().map(|m| MarkerInfo { id: m.id.0, at: m.start.0, duration: m.duration.0, name: m.name.clone(), color: Some(hex(m.color)) }).collect();
     TimelineSnapshot { revision, tracks, markers, duration: seq.duration().0 }
 }
 

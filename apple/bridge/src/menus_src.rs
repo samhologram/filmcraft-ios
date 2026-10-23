@@ -92,7 +92,7 @@ fn after_decl(toks: &[Tok], name: &str) -> Option<usize> {
     None
 }
 
-fn word<'a>(t: Option<&'a Tok>) -> Option<&'a str> {
+fn word(t: Option<&Tok>) -> Option<&str> {
     match t {
         Some(Tok::Word(w)) => Some(w.as_str()),
         _ => None,
@@ -294,10 +294,8 @@ pub fn parse_tools(state_src: &str, ui: &[UiCommandInfo]) -> Vec<ToolInfo> {
         .map(|variant| {
             let id = format!("tool.{}", lower_camel(&variant));
             let cmd = ui.iter().find(|c| c.id == id);
-            let label = cmd
-                .map(|c| c.label.clone())
-                .or_else(|| labels.iter().find(|(v, _)| *v == variant).map(|(_, l)| l.clone()))
-                .unwrap_or_else(|| variant.clone());
+            let label =
+                cmd.map(|c| c.label.clone()).or_else(|| labels.iter().find(|(v, _)| *v == variant).map(|(_, l)| l.clone())).unwrap_or_else(|| variant.clone());
             ToolInfo { id, label, shortcut: cmd.and_then(|c| c.shortcut.clone()) }
         })
         .collect()
@@ -433,10 +431,8 @@ pub const UI_COMMANDS: &[UiCommand] = &[
     fn layout_groups_and_submenus() {
         let titles = vec!["File".to_string(), "Edit".to_string()];
         let e = |id: &str, p: &[&str]| MenuEntry { id: id.into(), path: p.iter().map(|s| s.to_string()).collect() };
-        let l = build_layout(
-            &titles,
-            &[vec![e("a", &["File"]), e("b", &["File", "New"]), e("c", &["File", "New"])], vec![e("d", &["File"]), e("e", &["Edit"])]],
-        );
+        let l =
+            build_layout(&titles, &[vec![e("a", &["File"]), e("b", &["File", "New"]), e("c", &["File", "New"])], vec![e("d", &["File"]), e("e", &["Edit"])]]);
         assert_eq!(l[0].items, ["a", "@New", "---", "d"]);
         assert_eq!(l[1].items, ["e"]);
     }
