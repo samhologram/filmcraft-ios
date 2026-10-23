@@ -35,6 +35,9 @@ extension EditorModel {
             case .cancelled:
                 self.exportMessage = "Export cancelled"
                 Log.export.info("export cancelled")
+            case .rendering:
+                // `run` returns only a terminal phase; progress arrives through the callback.
+                break
             }
             self.exportProgress = nil
             self.exportTask = nil

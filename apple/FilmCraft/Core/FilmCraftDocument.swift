@@ -10,19 +10,28 @@ extension UTType {
 
 /// A FilmCraft project as a document. The engine (`ProjectHandle`) owns the real state; the snapshot is its
 /// project JSON, so autosave and "Duplicate / Share" work through the system document browser.
-@MainActor
-final class FilmCraftDocument: ReferenceFileDocument {
+///
+/// Not main-actor isolated: SwiftUI may call `init(configuration:)` and `snapshot` off the main thread. The
+/// document holds the thread-safe engine handle and creates the main-actor `EditorModel` lazily on first use.
+final class FilmCraftDocument: ReferenceFileDocument, @unchecked Sendable {
     typealias Snapshot = Data
 
-    nonisolated static var readableContentTypes: [UTType] { [.filmcraftProject] }
-    nonisolated static var writableContentTypes: [UTType] { [.filmcraftProject] }
+    static var readableContentTypes: [UTType] { [.filmcraftProject] }
+    static var writableContentTypes: [UTType] { [.filmcraftProject] }
 
-    let model: EditorModel
+    let handle: ProjectHandle
+    @MainActor private var cachedModel: EditorModel?
+
+    @MainActor var model: EditorModel {
+        if let cachedModel { return cachedModel }
+        let created = EditorModel(handle: handle)
+        cachedModel = created
+        return created
+    }
 
     /// A new untitled project (or the engine's procedural demo project with `-FilmCraftDemo`).
     init() {
-        let handle = AppEnvironment.isDemo ? ProjectHandle.demo() : ProjectHandle.newProject(name: "Untitled")
-        model = EditorModel(handle: handle)
+        handle = AppEnvironment.isDemo ? ProjectHandle.demo() : ProjectHandle.newProject(name: "Untitled")
         Log.document.info("new document (demo: \(AppEnvironment.isDemo, privacy: .public))")
     }
 
@@ -32,7 +41,7 @@ final class FilmCraftDocument: ReferenceFileDocument {
         }
         do {
             // Relative media paths resolve through the cache / Documents folders (see `EditorModel.bootstrap`).
-            model = EditorModel(handle: try ProjectHandle.openJson(json: json, pathHint: nil))
+            handle = try ProjectHandle.openJson(json: json, pathHint: nil)
         } catch {
             Log.document.error("open failed: \(errorText(error), privacy: .public)")
             throw CocoaError(.fileReadCorruptFile, userInfo: [NSLocalizedDescriptionKey: errorText(error)])
@@ -41,13 +50,13 @@ final class FilmCraftDocument: ReferenceFileDocument {
 
     func snapshot(contentType: UTType) throws -> Data {
         do {
-            return Data(try model.handle.projectJson().utf8)
+            return Data(try handle.projectJson().utf8)
         } catch {
             throw CocoaError(.fileWriteUnknown, userInfo: [NSLocalizedDescriptionKey: errorText(error)])
         }
     }
 
-    nonisolated func fileWrapper(snapshot: Data, configuration: WriteConfiguration) throws -> FileWrapper {
+    func fileWrapper(snapshot: Data, configuration: WriteConfiguration) throws -> FileWrapper {
         FileWrapper(regularFileWithContents: snapshot)
     }
 }

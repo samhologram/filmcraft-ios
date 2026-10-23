@@ -73,7 +73,7 @@ struct EditorScene: View {
 
 /// App icon above the title of the document browser's launch scene.
 private struct LaunchIcon: View {
-    let geometry: DocumentLaunchGeometry
+    let geometry: DocumentLaunchGeometryProxy
 
     var body: some View {
         let size: CGFloat = 72

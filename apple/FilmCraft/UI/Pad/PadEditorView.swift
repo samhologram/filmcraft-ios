@@ -98,7 +98,6 @@ struct PadEditorView: View {
                 }
                 .onEnded { _ in dragStart = nil }
         )
-        .pointerStyle(.rowResize)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Resize timeline")
         .accessibilityAdjustableAction { direction in

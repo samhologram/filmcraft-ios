@@ -54,7 +54,7 @@ struct ExportSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Video") {
+                Section {
                     Picker("Resolution", selection: $resolution) {
                         ForEach(Self.resolutions.indices, id: \.self) { i in
                             Text(verbatim: Self.resolutions[i].title).tag(i)
@@ -71,6 +71,8 @@ struct ExportSheet: View {
                             .accessibilityLabel("Quality")
                             .accessibilityIdentifier("exportQuality")
                     }
+                } header: {
+                    Text("Video")
                 } footer: {
                     Text(verbatim: summary)
                 }

@@ -43,7 +43,7 @@ final class PhotosLibrary {
     init() {
         authorization = PHPhotoLibrary.authorizationStatus(for: .readWrite)
         imageManager.allowsCachingHighQualityImages = false
-        Log.photos.info("Photos authorization: \(Self.describe(authorization), privacy: .public)")
+        Log.photos.info("Photos authorization: \(Self.describe(self.authorization), privacy: .public)")
         if isAuthorized { start() }
     }
 

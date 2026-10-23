@@ -145,7 +145,6 @@ struct ClipView: View {
         }
         .frame(width: handleWidth, height: height)
         .contentShape(Rectangle())
-        .pointerStyle(.columnResize)
         .highPriorityGesture(
             DragGesture(minimumDistance: 1, coordinateSpace: .global)
                 .onChanged { actions.trimChanged(edge, $0.translation.width) }
