@@ -1,0 +1,52 @@
+# id<TAB>reason. Commands the iOS app does not surface. Keep conservative.
+file.reveal	Reveal in Finder: no Finder on iOS; Files app sharing is used instead
+projectPanel.revealProject	Reveal in Finder: no Finder on iOS
+help.revealLogFiles	Reveal in Finder: no Finder on iOS
+help.systemReport	System compatibility report is a desktop diagnostic (GPU/codec probing)
+help.systemCompatibilityReport	System compatibility report is a desktop diagnostic (GPU/codec probing)
+help.discord	Opens an external community site; not part of the iOS app
+help.website	Opens an external website; not part of the iOS app
+help.github	Opens an external website; not part of the iOS app
+window.dockAction	Native window docking is desktop-only
+window.dockPanel	Native window docking is desktop-only
+window.floatPanel	Floating/undocked panels do not exist on iOS
+window.toggleFullScreen	Window full screen is managed by iPadOS/Stage Manager
+window.toggleMonitorFocus	Needs separate Source and Program monitors; iOS shows one viewer
+window.maximizeFrame	Panel frame maximizing is desktop docking; iOS uses sheets and the inspector
+window.maximizeFrameUnderCursor	Panel frame maximizing is desktop docking; iOS uses sheets and the inspector
+window.nextPanel	Panel focus cycling is desktop docking
+window.prevPanel	Panel focus cycling is desktop docking
+panel.referenceMonitor	Needs a second display; iOS has no reference monitor
+multicam.showPreviewMonitor	Needs a second monitor
+multicam.recordStart	Live multi-camera recording needs a desktop playback loop and capture devices
+multicam.recordStop	Live multi-camera recording needs a desktop playback loop and capture devices
+multicam.recordToggle	Live multi-camera recording needs a desktop playback loop and capture devices
+audio.voiceover.settings	Voice-over capture device selection is desktop audio hardware
+audio.voiceover.start	Voice-over recording needs an audio input device bridge (not provided)
+audio.voiceover.sync	Voice-over recording needs an audio input device bridge (not provided)
+audio.voiceover.stop	Voice-over recording needs an audio input device bridge (not provided)
+voiceover.recordToggle	Voice-over recording needs an audio input device bridge (not provided)
+voiceover.settingsDialog	Voice-over capture device selection is desktop audio hardware
+mixer.recordStart	Live mixer automation recording is tied to the desktop audio device loop
+mixer.recordStop	Live mixer automation recording is tied to the desktop audio device loop
+transcript.models	Speech models are not built into the iOS bridge (whisper off)
+transcript.downloadModel	Speech model downloads are not built into the iOS bridge
+transcript.generate	Speech-to-text (whisper) is not built into the iOS bridge
+tts.voices	Natural voices are not built into the iOS bridge
+tts.downloadVoices	Neural voice downloads are not built into the iOS bridge
+app.settings.audioHardware	Audio hardware selection is managed by iOS
+app.settings.plugins	Native plugin management does not exist on iOS
+app.settings.memory	Desktop memory/cache tuning dialog; iOS manages memory itself
+app.quit	iOS apps do not quit themselves
+app.language.english	In-app language switching: iOS uses the system per-app language setting
+app.language.japanese	In-app language switching: iOS uses the system per-app language setting
+app.language.spanish	In-app language switching: iOS uses the system per-app language setting
+app.language.portuguese	In-app language switching: iOS uses the system per-app language setting
+app.language.ukrainian	In-app language switching: iOS uses the system per-app language setting
+app.language.chinese	In-app language switching: iOS uses the system per-app language setting
+app.language.german	In-app language switching: iOS uses the system per-app language setting
+app.language.russian	In-app language switching: iOS uses the system per-app language setting
+app.language.french	In-app language switching: iOS uses the system per-app language setting
+app.language.indonesian	In-app language switching: iOS uses the system per-app language setting
+app.language.italian	In-app language switching: iOS uses the system per-app language setting
+app.language.korean	In-app language switching: iOS uses the system per-app language setting

@@ -138,6 +138,9 @@ Every exported fn runs engine code under `catch_unwind` and never panics; poison
     pub fn import_files(&self, paths: Vec<String>) -> Result<Vec<u64>, BridgeError>; // file.import; new media ids
     pub fn relink_missing(&self, resolver_dir: String) -> Vec<u64>;                // relinks offline media whose file
         // name exists in resolver_dir; returns still-offline ids (Swift re-materializes PH-… then calls again)
+    pub fn clip_effects_json(&self, clip_id: u64) -> Result<String, BridgeError>;
+        // serde_json of the clip's effect stack (Vec of {effect, enabled, params:{id:{value:ParamValue,keyframes}}, masks}),
+        // same shape as inside project_json; "[]" for a clip without effects; Err for an unknown clip
     pub fn set_playhead(&self, at: i64);
     // Rendering: snapshot Arcs under the lock, render OUTSIDE it (thread-safe; call from a background task).
     pub fn render_program(&self, at: i64, max_w: u32, max_h: u32) -> Result<RenderedImage, BridgeError>;
@@ -193,10 +196,10 @@ final class FilmCraftDocument: ReferenceFileDocument {        // Snapshot = Data
     var undoRedoTick: Int
     weak var undoManager: UndoManager?
 
-    func run(_ id: String, _ params: [String: Any] = [:])   // execute + refresh + undo registration; errors → lastError
+    @discardableResult func run(_ id: String, _ params: [String: Any] = [:]) -> Bool   // true on success; execute + refresh + undo registration; errors → lastError
     func isEnabled(_ id: String) -> Bool
     func present(_ id: String)              // runs directly when no required params, else pendingCommand = id
-    func runUI(_ id: String)                // UI-only ids: tool.*, panel.*/window.*, view.*, playback.* handled in Swift
+    @discardableResult func runUI(_ id: String) -> Bool  // UI-only ids: tool.*, panel.*/window.*, view.*, playback.* handled in Swift
     func refresh()
     func seek(_ ticks: Int64)               // set_playhead + render
     func togglePlay(); func stepFrame(_ delta: Int)
@@ -237,4 +240,8 @@ menus, toolbars, sheets, palette rows), `param.<key>` in command forms, `track.<
 `playhead`, `timecode`, `transport.play`, `transport.stepBack`, `transport.stepForward`, `transport.start`,
 `transport.end`, `mediaBrowser`, `import.photos`, `import.files`, `export`, `export.photos`, `export.files`,
 `export.progress`, `inspector`, `palette`, `demoReady` (hidden element once demo seeding finished),
-`photos.denied`, `photos.limited`. Widget ids never look like command ids (no `x.y` form that is not a command).
+`photos.denied`, `photos.limited`. Widget ids never look like command ids: a dotted widget id must start with a reserved widget prefix that no engine
+or UI command uses: `menu.`, `photos.`, `fx.`, `album.`, `asset.`, `media.`, `track.`, `clip.`, `marker.`, `transport.`,
+`export.`, `import.`, `param.`, `tool.`/`panel.`/`command.` (these three name catalog items). Other widget ids are
+undotted camelCase (`commandSheetRun`, `paletteDone`, `mediaPanel`, `trackMute_<id>`). `scripts/check-command-ids.sh`
+checks only literals passed to run/present/runUI and `command.<id>` identifiers.

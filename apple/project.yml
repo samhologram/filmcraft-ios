@@ -1,0 +1,122 @@
+# XcodeGen spec. Generate with: cd apple && xcodegen generate   (FilmCraft.xcodeproj is gitignored)
+name: FilmCraft
+options:
+  bundleIdPrefix: ca.hologram
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "26.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    MARKETING_VERSION: "$(FILMCRAFT_MARKETING_VERSION)"
+    FILMCRAFT_MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SUPPORTS_MACCATALYST: NO
+    DEVELOPMENT_TEAM: ""
+packages:
+  FilmCraftKit:
+    path: FilmCraftKit
+targets:
+  FilmCraft:
+    type: application
+    platform: iOS
+    sources:
+      - path: FilmCraft
+        excludes:
+          - "**/.DS_Store"
+          - "**/*.entitlements"
+    dependencies:
+      - package: FilmCraftKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ca.hologram.filmcraft
+        PRODUCT_NAME: FilmCraft
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_PREVIEWS: YES
+        GENERATE_INFOPLIST_FILE: NO
+    preBuildScripts:
+      - name: Check FilmCraftBridge.xcframework
+        basedOnDependencyAnalysis: false
+        script: |
+          if [ ! -d "${SRCROOT}/FilmCraftKit/FilmCraftBridge.xcframework" ] || [ ! -f "${SRCROOT}/FilmCraftKit/Sources/FilmCraftKit/filmcraft_apple.swift" ]; then
+            echo "error: FilmCraftBridge.xcframework (or generated filmcraft_apple.swift) is missing: run apple/scripts/build-xcframework.sh"
+            exit 1
+          fi
+    info:
+      path: build/Info/FilmCraft-Info.plist
+      properties:
+        CFBundleDisplayName: FilmCraft
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        UILaunchScreen:
+          UIImageRespectsSafeAreaInsets: false
+        UIFileSharingEnabled: true
+        UISupportsDocumentBrowser: true
+        LSSupportsOpeningDocumentsInPlace: true
+        UIApplicationSupportsIndirectInputEvents: true
+        UIRequiresFullScreen: false
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+          UISceneConfigurations: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSPhotoLibraryUsageDescription: FilmCraft lets you pick videos and photos from your library to edit into movies.
+        NSPhotoLibraryAddUsageDescription: FilmCraft saves exported movies to your Photos library.
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: FilmCraft Project
+            CFBundleTypeRole: Editor
+            LSHandlerRank: Owner
+            LSItemContentTypes: [ca.hologram.filmcraft.project]
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: ca.hologram.filmcraft.project
+            UTTypeDescription: FilmCraft Project
+            UTTypeConformsTo: [public.json, public.data]
+            UTTypeTagSpecification:
+              public.filename-extension: [fcproj]
+              public.mime-type: [application/x-filmcraft-project]
+  FilmCraftTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: FilmCraftTests
+    dependencies:
+      - target: FilmCraft
+      - package: FilmCraftKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ca.hologram.filmcraft.tests
+        GENERATE_INFOPLIST_FILE: YES
+  FilmCraftUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: FilmCraftUITests
+    dependencies:
+      - target: FilmCraft
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ca.hologram.filmcraft.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: FilmCraft
+schemes:
+  FilmCraft:
+    build:
+      targets:
+        FilmCraft: all
+        FilmCraftTests: [test]
+        FilmCraftUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets: [FilmCraftTests, FilmCraftUITests]

@@ -1,0 +1,1 @@
+# Command ids the Swift sources reference literally (one per line). Checked by scripts/check-command-ids.sh.

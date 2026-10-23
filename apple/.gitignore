@@ -5,3 +5,8 @@ bridge/target/
 *.xcresult/
 .DS_Store
 xcuserdata/
+FilmCraftKit/FilmCraftBridge.xcframework/
+FilmCraftKit/Sources/FilmCraftKit/filmcraft_apple.swift
+FilmCraftKit/.build/
+DerivedData/
+.build/

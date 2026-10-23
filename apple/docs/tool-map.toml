@@ -1,0 +1,94 @@
+# Desktop tool.* (state.rs Tool::ALL) and panel.* (dock.rs PanelKind::ALL) ids -> where the iOS app has them.
+# Checked by scripts/tool-coverage.sh: every id needs an entry with `swift` (a Swift surface), `ios` (alias) or
+# `excluded` (reason). `swift = "TODO"` is a placeholder the orchestrator fills in.
+
+[tool.selection]
+swift = "TODO"
+[tool.trackSelectForward]
+swift = "TODO"
+[tool.trackSelectBackward]
+swift = "TODO"
+[tool.ripple]
+swift = "TODO"
+[tool.rolling]
+swift = "TODO"
+[tool.rateStretch]
+swift = "TODO"
+[tool.remix]
+swift = "TODO"
+[tool.razor]
+swift = "TODO"
+[tool.slip]
+swift = "TODO"
+[tool.slide]
+swift = "TODO"
+[tool.pen]
+swift = "TODO"
+[tool.rectangle]
+swift = "TODO"
+[tool.ellipse]
+swift = "TODO"
+[tool.hand]
+swift = "TODO"
+[tool.zoom]
+swift = "TODO"
+[tool.type]
+swift = "TODO"
+[tool.verticalType]
+swift = "TODO"
+[panel.project]
+swift = "TODO"
+[panel.mediaBrowser]
+swift = "TODO"
+[panel.libraries]
+swift = "TODO"
+[panel.info]
+swift = "TODO"
+[panel.effects]
+swift = "TODO"
+[panel.markers]
+swift = "TODO"
+[panel.history]
+swift = "TODO"
+[panel.source]
+swift = "TODO"
+[panel.effectControls]
+swift = "TODO"
+[panel.audioClipMixer]
+swift = "TODO"
+[panel.metadata]
+swift = "TODO"
+[panel.program]
+swift = "TODO"
+[panel.timeline]
+swift = "TODO"
+[panel.tools]
+swift = "TODO"
+[panel.audioMeters]
+swift = "TODO"
+[panel.audioTrackMixer]
+swift = "TODO"
+[panel.lumetriColor]
+swift = "TODO"
+[panel.lumetriScopes]
+swift = "TODO"
+[panel.essentialGraphics]
+swift = "TODO"
+[panel.essentialSound]
+swift = "TODO"
+[panel.textToSpeech]
+swift = "TODO"
+[panel.properties]
+swift = "TODO"
+[panel.text]
+swift = "TODO"
+[panel.events]
+swift = "TODO"
+[panel.progress]
+swift = "TODO"
+[panel.referenceMonitor]
+swift = "TODO"
+[panel.timecode]
+swift = "TODO"
+[panel.projectNotes]
+swift = "TODO"
