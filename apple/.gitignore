@@ -1,0 +1,7 @@
+*.xcodeproj/
+build/
+bridge/target/
+*.xcframework/
+*.xcresult/
+.DS_Store
+xcuserdata/
