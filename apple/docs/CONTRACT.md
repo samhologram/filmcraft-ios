@@ -268,6 +268,10 @@ checks only literals passed to run/present/runUI and `command.<id>` identifiers.
    persisted per window scene (`@SceneStorage`, JSON of `[[panelId]]` + collapsed set) and restorable via Window ▸
    Workspaces ▸ Reset. Program and Timeline are panels too (the viewer and timeline zones are their default homes).
    iPhone: every panel opens as a sheet with detents (unchanged).
+   A toolbar button `toggleInspector` uses `sidebar.leading` and announces Show Panels / Hide Panels. It hides or
+   shows the leading dock on wide iPad and opens or closes the selected panel sheet on narrow iPad/iPhone. Hiding
+   preserves dock groups, order, collapsed state and selected panel; showing reveals the selected tab and group.
+   Opening a panel from Window or the overflow menu also restores a hidden dock.
 3. **Panel-owned actions sit in their panel's header**, not the global toolbar: Media/Project → Import (Photos,
    Files), New Bin, list/grid; Timeline → Add Track, snapping, linked selection, track height; Effects → search;
    Effect Controls → reset all; Audio mixers → add/remove track; Markers → add marker; Lumetri → reset. The global

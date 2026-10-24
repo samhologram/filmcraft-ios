@@ -1,9 +1,9 @@
 # Cookbook: native iPad/iPhone app for a {Function}Craft Rust app
 
 For LLM agents. Replace `<App>`/`<app>` with the target (VectorCraft/vectorcraft, LightCraft/lightcraft, …). Execute in
-order; each phase ends green before the next. Revision 2: adds what the LightCraft port taught (data model by category,
-contract-first parallel agents, hollow-green traps, iPad-then-iPhone testing). Revision 3: opus/sonnet/haiku roles,
-parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator testing and the haiku feature pass.
+order; each phase ends green before the next, except for an explicit user override. Current revision incorporates
+Sol orchestration/code, Astra-only story/test drafting, Luna validation, token economy, shared simulator discipline,
+PhotoCraft-inspired panel UX, pre-commit dead-code review and the latest physical-iPad installation request.
 
 ## 0. Rules
 - Fork code only in `apple/` (+ CI workflow, `FORK.md`). Never edit upstream files. Upstream stays mergeable (remote
@@ -29,25 +29,32 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
   (`simctl`, XCUITest) instead of waiting.
 - Models (user update, 2026-10-24): Sol orchestrates each app through a dedicated subagent; the root supervises
   the whole workspace. Luna handles review/search swarms and tests. Terra is preferred for code; while Terra is
-  unavailable in the subagent tool, the user explicitly authorizes Sol for code. These roles supersede the older
-  Opus/Sonnet/Haiku references below. Phase projects to respect the four-agent limit and shared build/simulator budget.
+  unavailable in the subagent tool, the user explicitly authorizes Sol for code. Phase projects to respect the
+  four-agent limit and shared build/simulator budget.
   Give each subagent a self-contained brief,
-  the files it owns, the files it must not touch, its own `-derivedDataPath` and its own simulators (named with the
-  app prefix, e.g. `<App>-iPad`). The shared-device rule in §7 supersedes this older per-agent simulator advice.
+  the files it owns, the files it must not touch and its derived-data path. Use only the two shared simulators
+  in §7; do not create per-agent simulators. Reuse each app's current `apple/build/dd` when its prior owner is done.
   Parallel apps share the disk: budget ~10 GB each and check `df` before heavy builds.
-- Test-role update (user, 2026-10-24): GPT Astra designs user-story-based cases for each platform (iPadOS and
-  iOS), authors the test cases and performs UX review passes. Use Sol if Astra is unavailable. Luna executes
-  those cases and reports reproducible bugs and UX issues with evidence. Reuse meaningful existing tests,
+- Test-role update (latest user correction, 2026-10-24): use GPT Astra ONLY to draft user stories and test cases
+  for iPadOS and iOS (Sol fallback if unavailable). Luna executes, validates and reports bugs/UX issues;
+  do not assign Astra source audits, runtime analysis or validation. Sol fixes production code and fixtures.
+  Reuse meaningful existing tests,
   cover real user workflows and adaptive layouts, and do not count absent/skipped/unreached workflows as passes.
+- Toolbar update (user request, 2026-10-24): every app has a sidebar icon in its toolbar, matching PhotoCraft,
+  to hide/show the panels bar. Hiding preserves the selected panel and dock layout; showing restores them and
+  keeps the selected tab visible. Opening a panel from a menu reveals the bar. Retain the fullscreen exit control.
+- Token economy is explicitly requested: keep orchestration turns and reports short, reuse existing agent contexts,
+  inspect bounded error/evidence excerpts, avoid repeated audits or unchanged passing checks, and reuse compatible
+  build artifacts. Spend Astra tokens only on test/story drafting that is actually needed.
 - Parallel apps share the CPU: never let every app compile at once (8 cores, load ~650 = all stall). The orchestrator
   runs `tools/buildsched.sh`, which pauses (SIGSTOP, never kills) lower-priority apps' compilers and resumes them on spare
   cores; priority in `.build.priority`, closest-to-testing first. App sessions run heavy builds in the background,
   never kill a paused (`T`) build, and do non-compile work while paused.
 - Token-heavy work first: CPU is the bottleneck, agents are not. Front-load writing, review swarms, test authoring
   and docs in parallel; batch compiles so each build validates as much new code as possible.
-- Low-token mode (when the user asks, e.g. near a usage limit): Opus orchestrates in short turns and delegates the
-  work to Sonnet (code fixes) and Haiku (search, tests); compile and build tasks come first; record errors and batch
-  fixes, don't poll, don't re-read large logs (grep the error lines).
+- Token-economy mode is active: Sol orchestrates in short turns and handles code fixes; Luna searches, executes
+  and validates; Astra is reserved for necessary story/test drafting. Build first, batch fixes, read bounded
+  error excerpts, reuse prior valid evidence and do not repeatedly poll unchanged progress or reread full logs.
 
 ## 0b. Product shape (decide before writing UI; ask the user when the category leaves it open)
 - **Data model follows the category, not the template.** A document app (image, vector, layout, PDF) uses
@@ -93,7 +100,7 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
   | PDF | PDF Expert |
   | layout/design | Affinity Publisher, Canva |
 - Write the reference and 5–10 conventions taken from it in `apple/README.md` before building the UI. Review
-  screenshots against it.
+  behavior and native UI structure against it; use assertions, accessibility and logs under the no-screenshot rule.
 - Media in, everywhere: every app can (a) start a new document/project from a photo, video or file, and (b) import
   into the current context (canvas, selected layer/frame, timeline, bin, library) from the camera roll
   (`PhotosPicker`, no full-library permission needed), Files / iCloud Drive / any file provider
@@ -146,6 +153,10 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
 - Scene per §0b: `DocumentGroup` + `ReferenceFileDocument` (engine history on the scene `UndoManager`, autosave via
   `snapshot`) for document apps; a `WindowGroup` over the platform library for library apps (engine history still on
   the window's `UndoManager`; write-back on leaving the editor).
+- Reference-document creation, reading and snapshots must be safe outside MainActor. Store the thread-safe engine
+  handle directly and create the UI model lazily on MainActor; never assume document callbacks are main-thread.
+  Native autosave verification must cover scene UndoManager registration and edit → close → reopen of the same URL.
+  A manually written foreign-image copy or a demo WindowGroup does not establish native DocumentGroup persistence.
 - Per-idiom UI: iPad sidebar/palette + options + inspector; iPhone bottom tool strip + sheets with detents that keep
   the content visible above them. Liquid Glass system styles, no custom chrome.
 - Size the layout for the smallest window, not the device: iPadOS windows are resizable, in either orientation, Split
@@ -194,6 +205,10 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
 
 ## 5. Toolchain (macOS)
 - Rust in `~/.cargo/bin` (often not on PATH). Xcode via `export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`.
+- On this host, Xcode/SwiftPM shared caches and CoreSimulator are outside the workspace sandbox. Use the tool's
+  normal escalated execution for authorized Xcode builds, simulator inspection and test runners from the outset;
+  a sandboxed CoreSimulator connection error is not evidence that the simulator service itself is broken.
+  Keep one current derived-data directory; do not duplicate caches just to avoid the normal access mechanism.
 - Simulator runtime: `xcodebuild -downloadPlatform iOS`; reject device-locked runtimes; `simctl create` devices.
 - Disk: check `df` first. One Rust target dir (≈ 5–11 GB); delete `target/debug` after host gates; one derived-data dir
   per agent (≈ 3 GB); delete `.xcresult` bundles once read.
@@ -210,7 +225,7 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
 2. `xcodebuild build-for-testing -scheme <App> -destination 'generic/platform=iOS Simulator' ARCHS=arm64
    CODE_SIGNING_ALLOWED=NO -derivedDataPath build/dd`.
 3. Fix every error; grep the whole tree for the same pattern. If the bindings can be generated before the Swift is
-   written, the compiler is the reviewer; otherwise have three haiku reviewers sweep thirds of the sources first.
+   written, the compiler is the reviewer; otherwise use a bounded Luna source review only where it adds value.
 - Known Swift 6 / iOS traps: macOS-only APIs (`openDocument`, `newDocument`, `onPasteCommand`); a
   `CommandsBuilder`/`ToolbarContentBuilder` takes ≤ 10 items and `ForEach` is not `Commands`; free functions touching
   `@MainActor` models need `@MainActor` (and only once); literal arrays inferring `[Any]`; ambiguous `.infinity`;
@@ -226,13 +241,26 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
   each device: portrait, then landscape (iPad), then the narrowest window you can produce.
 - Unit: bridge smoke tests (swift-testing): catalogs load, a command changes state, undo/redo moves the history id,
   render returns w×h×4 bytes, persistence round-trips.
-- UI test: launch with the demo arg in dark and light, reach the library, wait for a `demoReady` marker, open an item,
-  act on it, open panels, attach screenshots. A missing element goes into a `-notes` attachment, not a failure.
-- **Read the notes and look at the screenshots — a green run can be hollow** (an empty demo library, a panel that
+- UI test: launch with the demo arg in dark and light, reach actual demo content, wait for `demoReady`, open an item,
+  act on it and open panels. Attach text hierarchy/notes/logs, never screenshots. A required story element missing
+  fails that workflow; optional/unavailable capabilities are separately reported and never counted as performed.
+- **Read the notes — a green run can be hollow** (an empty demo library, a panel that
   never opened, an alert covering everything). Reset state the app persists between runs (UserDefaults, caches,
   the platform library) so runs don't depend on the previous one.
+- Ground fixtures in the real platform flow: explicit Photos authorization state, a writable Files directory
+  (NewDocumentButton uses the current browser location), and no covering browser/panel before canvas actions.
+  A background `canvas.exists` or a successful tap report is not proof that the editor/action is usable.
+- Enumerate tests with Xcode when case declarations/project configuration change; cache that inventory across
+  helper-only rebuilds. Verify actual nonzero executed counts. ObjC `AndReturnError` symbols are not test identifiers.
+  When debug dylibs are enabled, the tiny app launcher UUID can remain constant; verify the real `.debug.dylib`
+  plus test method inventory, not only the launcher. Do not use obsolete derived-data directories.
+- UX audits should parse one atomic accessibility hierarchy snapshot; do not walk every live indexed element
+  while a lazy list/animation changes, which can abort the story with stale-index exceptions. Action queries
+  should use stable identifiers or narrowly scoped native labels. Distinguish unavailable capabilities,
+  blocked setup, incomplete execution and actual product failures from passed workflows.
 - Coverage tours, one per user-facing catalog (tools, panels, menu/palette commands): visit every item through the real
-  UI, act on it, screenshot it, fail only on a crash. Generate the list from the source of truth; keep the state valid
+  UI, act on it and record the observable result. Fail on crashes or required unreached actions. Generate the list
+  from the source of truth; keep the state valid
   between items (undo, reselect). Write a summary attachment with every item's outcome.
 - Treat "not reached" as a bug in the app or the test, never a pass. Classify each cause, fix the root: off screen →
   layout; behind a gesture or scroll → missing identifier or a denser layout; refused by the engine → wrong test state
@@ -241,7 +269,7 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
   for permission states (test denied and limited too), files placed in the app container for file imports. Verify the
   write-back through the platform API, not just the UI.
 - Run: `xcodebuild test-without-building -destination id=<sim> -resultBundlePath x.xcresult`; export attachments with
-  `xcresulttool export attachments` (`manifest.json` maps names to files). Downscale screenshots before reading them.
+  `xcresulttool export attachments` (`manifest.json` maps names to files); retain text evidence, with no screenshots.
 - For focused no-screenshot test loops, pass `-collect-test-diagnostics never`: Xcode's automatic failure
   diagnostics can otherwise hold the shared simulator for up to 600 seconds after the test has ended. Preserve
   assertions, logs, hierarchy and notes; distinguish completed tests from aborted runs, and clean up only the
@@ -255,24 +283,32 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
   every other app. A lock older than its run's timeout with no test process alive is stale and may be removed.
 - Parallel apps share one iPad and one iPhone simulator; don't `simctl create` per-app devices. After every run,
   `simctl uninstall` the app and its UITests runner, so no compiled app stays installed when not needed.
-- Close Simulator.app while tests run; drive and inspect with XCUITest and `simctl io screenshot`, not by hand.
-- With parallel apps, iPad tests run in the orchestrator session, one app at a time, haiku driving the simulator.
+- Close Simulator.app while tests run; drive and inspect with XCUITest, accessibility hierarchy and app logs.
+- With parallel apps, Luna executes one app at a time on the shared simulator; Sol app orchestrators coordinate.
   App sessions send `READY-IPAD-SMOKE <app>` at each runnable build (short check, ~10 min: launch with demo, open
   an item, a few core actions, main panels, no crash) and `READY-IPAD-FULL <app>` only once stable and complete (full
-  suites, tours, feature pass); results go back as a defects list. iPhone tests stay in the app session.
+  suites, tours, feature pass); results go back as a defects list. Luna also executes the iPhone cases after the
+  corresponding iPad validation, preserving platform-specific prerequisites and honest blocked/unrun status.
 - Test live: attach the built-in iOS Simulator panel to each booted device and tell the orchestrator which one. When the user asks for no
   screenshots, verify through the accessibility tree, XCUITest assertions, notes and logs instead.
-- User-story pass (haiku): write classical stories (the category's everyday jobs, e.g. open → crop → export) and
+- User-story drafting (Astra only; Sol fallback): write classical stories (the category's everyday jobs, e.g. open → crop → export) and
   advanced ones (multi-panel, keyboard/Pencil, undo chains, import → edit → share, narrow window, dark/light) as
   XCUITests; each story records pass/fail, taps-to-do and a UX/UI review from the accessibility hierarchy (frames
   off-screen or clipped, targets < 44 pt, truncated/wrapped labels, missing ids, modal where inline would do, custom
-  colours) — no screenshots. Skip what earlier suites already proved; list what was skipped and why.
-- Once stable, a haiku feature pass over all features: one agent per feature area (every tool, panel, command and
-  document/library flow) drives the built-in simulator (iPad, then iPhone) and reports defects with evidence; sonnet
-  fixes; rerun until clean. The final report has a per-feature pass/fail table.
+  colours) — no screenshots. Luna executes and validates these cases, including the UX evidence; Astra does not
+  perform runtime/source-audit validation. Reuse earlier proved coverage and list remaining gaps explicitly.
+- Once stable, Luna performs the feature validation (tools, panels, commands and document/library flow), iPad
+  before iPhone, one simulator executor at a time, reporting evidence to Sol for fixes. Do not spawn needless
+  feature swarms in token-economy mode. The final report has per-feature/platform pass, fail, blocked and unrun status.
 
 ## 8. Device
-- Build the full xcframework (release, no `--sim-only`), set `DEVELOPMENT_TEAM`. With a free team, drop the iCloud
+- User request 2026-10-24: build if needed and install the latest workspace PhotoCraft, LightCraft and FigCraft
+  on the connected Sam iPad now, including current WIP. This explicit request overrides waiting for the pending
+  simulator UX signoff for these installations. Update in place, preserve user documents, and launch normally;
+  do not run reset/demo fixtures or seed/modify the personal Photos library on the physical device.
+- Build a device-capable xcframework and set `DEVELOPMENT_TEAM`. Preserve the current simulator slice when adding
+  the release device slice; reuse compatible current UniFFI bindings when the bridge API/features are unchanged.
+  With a free team, drop the iCloud
   entitlement and make the bundle ID unique. On the iPad: Developer Mode on.
 - Quick device install: build only the `aarch64-apple-ios` release slice (skip the simulator slices). Keep signing
   out of tracked files: a copy of `project.yml` outside the repo (team set, `CODE_SIGN_ENTITLEMENTS` removed, bundle
@@ -283,6 +319,8 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
   "No Accounts" from an agent's xcodebuild = the sandboxed shell can't read the Apple ID token in the login keychain;
   signing builds need the shell sandbox off (a permission the user approves). The Apple ID must be signed in to
   Xcode → Settings → Accounts (quit Xcode with ⌘Q so it saves). Developer Mode on (Settings → Privacy & Security).
-  Keep the device build dirs and a reinstall script so the 7-day re-sign is one command.
-- Install on a device only an app that passed its latest simulator smoke test ("if functional").
+  Preserve the signed app, source/build manifest and reinstall script; clean regenerable device intermediates
+  after a verified install when disk space is needed. Verify the installed bundle and a normal launched process.
+- Ordinarily install an app after its latest simulator smoke passes; the explicit three-app WIP installation
+  request above overrides that gate. Report remaining UX gaps separately from successful installation.
 - A device build is CPU work: give it a slot in `.build.priority` like any other build.

@@ -35,6 +35,9 @@ struct PhoneEditorView: View {
         }
         .background(Color(uiColor: .systemBackground))
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                PanelVisibilityButton(model: model, usesDock: false)
+            }
             ToolbarItemGroup(placement: .topBarTrailing) {
                 AddMediaButton(model: model)
                 PaletteButton(model: model)

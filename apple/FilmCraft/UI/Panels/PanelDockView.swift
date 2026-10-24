@@ -73,7 +73,11 @@ struct PanelDockView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("inspector")
-        .onAppear { restore(); synchronizeSelection() }
+        .onAppear {
+            restore()
+            if model.activePanel == nil { model.activePanel = groups.first?.selected }
+            synchronizeSelection()
+        }
         .onChange(of: model.activePanel) { _, _ in synchronizeSelection() }
         .onChange(of: model.panelDockResetTick) { _, _ in reset() }
     }

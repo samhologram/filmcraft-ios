@@ -80,6 +80,32 @@ struct PaletteButton: View {
     }
 }
 
+/// The single toolbar control for the panel dock on a wide iPad and the panel sheet in compact layouts.
+struct PanelVisibilityButton: View {
+    let model: EditorModel
+    let usesDock: Bool
+
+    private var isShowing: Bool {
+        usesDock ? model.inspectorVisible : (model.inspectorVisible && model.activePanel != nil)
+    }
+
+    var body: some View {
+        Button {
+            if isShowing {
+                model.inspectorVisible = false
+            } else if usesDock {
+                // The dock restores its scene layout and reveals the selected group when it remounts.
+                model.inspectorVisible = true
+            } else {
+                uiOpenPanel(model.activePanel ?? "panel.project", model: model)
+            }
+        } label: {
+            Label(isShowing ? "Hide Panels" : "Show Panels", systemImage: "sidebar.leading")
+        }
+        .accessibilityIdentifier("toggleInspector")
+    }
+}
+
 /// Opens the media browser sheet (Photos and Files).
 struct AddMediaButton: View {
     let model: EditorModel

@@ -19,3 +19,5 @@ Historical findings and current validation status.
   `DemoWindow` now provides a `NavigationStack`; the rebuilt bundle and early text hierarchy attachment await rerun.
 - The 24 panels routed through `GenericPanel` still need dedicated content and action tests; panel reachability alone
   is not feature completion.
+- Full-screen viewer mode and its dedicated exit control are not implemented in the current FilmCraft Swift UI;
+  the panel visibility toolbar button does not change that gap.
