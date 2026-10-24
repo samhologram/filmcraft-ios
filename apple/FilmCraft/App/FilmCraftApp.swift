@@ -26,6 +26,7 @@ struct FilmCraftApp: App {
 
         DocumentGroupLaunchScene("FilmCraft") {
             NewDocumentButton("New Project")
+            NewFromMediaButton()
         } background: {
             Color(.systemBackground)
         } overlayAccessoryView: { geometry in

@@ -34,6 +34,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ca.hologram.filmcraft
         PRODUCT_NAME: FilmCraft
+        CODE_SIGN_ENTITLEMENTS: FilmCraft/FilmCraft.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_PREVIEWS: YES
         GENERATE_INFOPLIST_FILE: NO
@@ -54,6 +55,11 @@ targets:
         UILaunchScreen:
           UIImageRespectsSafeAreaInsets: false
         UIFileSharingEnabled: true
+        NSUbiquitousContainers:
+          iCloud.ca.hologram.filmcraft:
+            NSUbiquitousContainerIsDocumentScopePublic: true
+            NSUbiquitousContainerName: FilmCraft
+            NSUbiquitousContainerSupportedFolderLevels: Any
         UISupportsDocumentBrowser: true
         LSSupportsOpeningDocumentsInPlace: true
         UIApplicationSupportsIndirectInputEvents: true

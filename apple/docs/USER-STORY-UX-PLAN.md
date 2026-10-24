@@ -1,5 +1,29 @@
 # FilmCraft: user-story UX validation, iPadOS and iOS
 
+## Latest FilmCraft checkpoint — 2026-10-24
+
+Luna executed all three iPad cases against `a267d3c7`: Split/Undo/Redo passed with a selected clip and interior
+playhead; the wide and portrait panel cases failed to reach Project Notes through the long native Panels menu.
+Later source changes (rightmost panels toggle, picker-first New from Media, persistent owned media copies) and a
+new ownership unit case compile in the generic simulator bundle. Their focused runtime results are pending;
+the earlier table below is retained as historical evidence, not the latest pass/fail classification.
+
+## Current evidence checkpoint — 2026-10-24 18:18 EDT
+
+This checkpoint supersedes earlier status statements below. Astra reviews source/test design and Luna executes runtime cases. Latest observations are attributed to the parent/Luna/Sol handoff where no separate log inspection is stated; no new runtime test was performed for this report. Times identify this review, not invented execution timestamps.
+
+| Platform | Classification | Current evidence and limit | Evidence path / attribution |
+|---|---|---|---|
+| Shared model | PASS |23 bridge and7 EditorModel tests pass. | `apple/build/results/luna-editor-tests.log`; parent/Sol handoff |
+| iPadOS | PASS, limited fixture improvement | NavigationStack host fix made More toolbar visible and tappable. This alone does not pass panel or editing stories. | `apple/build/results/luna-navfix-stories.log` / `.xcresult` |
+| iPadOS | Test preconditions / unreached | Three old UI cases failed amid delayed Photos authorization, a tail item in a native panel menu, and split without a demonstrated interior playhead. No independent panel-routing or split-engine defect is established. | `apple/build/results/luna-navfix-stories.log` / `.xcresult` |
+| iPadOS | COMPILED, NOT RUN | a267 WIP contains all three fixture fixes. Zero-test dispatch is not a pass or app failure.24 generic panels retain PARTIAL status until their actual routes/outcomes execute. | Current owner build/handoff; prior selected-case logs under `apple/build/results/` |
+| iOS | NOT TESTED | Phone editing and panel routes have not run; model test success cannot stand in for phone UX. | No phone runtime evidence in current handoff |
+
+**Common limits:** Native DocumentGroup edit → normal close → process relaunch → reopen of the same native file remains unverified. UndoManager registration paths were found; absent explicit publisher sends are not an autosave defect. Photo's explicit flat-image copy queue is a separate verified workflow. Do not classify every raw control-frame count below44pt as a UX defect: stock toolbar controls may use system hit regions; require actual hit-testing/interaction evidence. Light's missing manual removal and unavailable optional model remain explicit capability gaps. Current phone results apply only to Photo EditCopy; the other apps' iPhone UX remains unrun.
+
+Historical matrices and earlier evidence follow; retain their executable selectors, but use this checkpoint for current pass/fail classification.
+
 Confirmed runtime test-precondition defect: dock test ran portrait at 834×1210, below source threshold 900, so menu.panels was absent. Corrected test asserts landscape width; a separate portrait case verifies supported sheet UX. Four bespoke panel implementations exist; generic catalog content must not be reported as full specialist editing UX. CONTRACT documents foreign-copy/new-from-media/native decoder gaps; current tests do not close them.
 
 ## Story-to-test matrix
@@ -65,3 +89,16 @@ Substitute other exact selectors from the matrix. After iPad fixes pass, repeat 
 - **Vector:** latest Luna report confirms six catalog consistency tests passed, including reserved paste shortcut regression. Dock run executed zero tests because test binary lacked that selector. Require regenerated project/current test binary, nonzero count and named selector; a green process exit is not runtime UX proof.
 - **Photo:** new phone stories are source-authored only, not compiled/executed. The no-screenshot reusable cases are EditCopy, NewFromPhoto, PlacePhoto, Fullscreen and UserStory S1–S9. Do **not** schedule legacy PhotoCraftUITests/testScreenshotsDark or testScreenshotsLight: their `shot` helper calls XCUIScreen.main.screenshot(), contrary to this run's request.
 - **Light:** no new phase-2 runtime evidence reviewed. F and current-original-path tour need Luna rerun; previous reports do not establish success of the rebuilt fixes.
+
+
+## Native document persistence and isolation audit (2026-10-24)
+
+**Source review, not a runtime persistence pass.** Apple's [ReferenceFileDocument contract](https://developer.apple.com/documentation/swiftui/referencefiledocument) says SwiftUI cannot detect reference-property mutations itself and directs apps to register mutations with the environment UndoManager. The local iPhoneOS SDK interface also requires ObservableObject and Sendable and does not isolate serialization methods to MainActor. Absence of explicit `objectWillChange.send()` alone does **not** establish broken autosave, and is not grounds for a blanket publisher patch.
+
+All four native document editors have scene UndoManager wiring and engine-history registration: Photo `registerEngineUndo` plus `markEdited` for non-history edits; Vector `finishMutation` and grouped interaction completion; Fig refresh/history-ID tracking; Film `finishMutation`, drag completion and media import. These are architectural evidence, not proof that every edit is registered or saved before closure. The remaining risks to test are mutations before manager attachment, non-history content changes, and asynchronous mutation/close ordering. A focused owner unit check should attach an UndoManager, perform one real command and one gesture transaction, and verify registration/undo/redo; publisher emission is not the acceptance criterion.
+
+**Confirmed isolation mismatch:** FigCraftDocument's new/read constructors use MainActor.assumeIsolated to create EditorModel although the document API may call from other isolation domains. A runtime crash has not been observed in this audit. Minimal fix is to store the thread-safe engine handle directly and lazily create the model on MainActor, matching Vector/Film; keep serialization independent of the model and avoid reading current UI traits from background document callbacks. Photo, Vector and Film already use this handle/lazy-model architecture in the inspected source.
+
+**Required iPadOS and iOS acceptance (still incomplete):** open a known native file through the real DocumentGroup with a foreground actionable editor; change a uniquely observable property; return to Files normally; terminate and relaunch; reopen the same URL and assert the exact changed property. Repeat with Undo and Redo, and a drag/continuous adjustment. Inspect the saved native bytes through the engine after normal close to distinguish disk persistence from cached model state. Use layer opacity for Photo/Fig, shape or layer property for Vector, and a selected clip's trim/split state for Film. Keep the mutation outcome assertion strict and confirm the correct document identity. First test normal close; immediate termination during an in-flight edit is a separate durability scenario.
+
+Photo flat-image EditCopy exercises a separate explicit copy queue, not native `.pcraft` autosave. Film's demo WindowGroup does not exercise DocumentGroup persistence. A pre-seeded native file can isolate autosave testing from browser creation, but must not count as a passed New Document story. No native persistence pass or observed data-loss claim is made here.

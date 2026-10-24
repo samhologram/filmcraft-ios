@@ -3,6 +3,46 @@ import XCTest
 /// Focused regression for the wide iPad dock. The full panel tour checks each panel's content separately.
 @MainActor
 final class PanelDockUITests: FilmCraftUITestCase {
+    func testToolbarSidebarRestoresSelectedPanel() {
+
+        continueAfterFailure = false
+        defer {
+            let evidence = XCTAttachment(string: app.debugDescription)
+            evidence.name = "sidebar-toggle-hierarchy"; evidence.lifetime = .keepAlways; add(evidence)
+        }
+        func waitState(_ message: String, _ check: @escaping () -> Bool) {
+            let predicate = NSPredicate { _, _ in check() }
+            XCTAssertEqual(XCTWaiter.wait(for: [expectation(for: predicate, evaluatedWith: nil)], timeout: 8), .completed, message)
+        }
+
+        if isPad { XCUIDevice.shared.orientation = .landscapeLeft }
+        defer { XCUIDevice.shared.orientation = .portrait }
+        launchDemo(dark: false)
+        let wide = app.windows.firstMatch.frame.width >= 900
+        func openNotes() {
+            if !wide { XCTAssertTrue(tap("menu.more"), "Compact panel menu requires More") }
+            XCTAssertTrue(tap("menu.panels"))
+            XCTAssertTrue(tapMenuItemScrolling("panel.projectNotes"))
+        }
+        func shown() -> Bool {
+            if wide { return element("panel.projectNotes.header").isHittable && hit("panel.projectNotes") != nil }
+            let tab = element("panel.projectNotes")
+            return element("panelClose").isHittable && tab.isSelected && tab.isHittable
+        }
+        openNotes()
+        waitState("Project Notes must be foreground and reachable", shown)
+        XCTAssertTrue(tap("toggleInspector"), "Toolbar must hide panels")
+        waitState("Project Notes must no longer be interactive", { !shown() })
+        XCTAssertTrue(tap("toggleInspector"), "Toolbar must restore panels")
+        waitState("Restoring must preserve selected Project Notes", shown)
+        XCTAssertTrue(tap("toggleInspector"))
+        waitState("Panels must hide before menu reopen", { !shown() })
+        if wide { XCTAssertTrue(tap("toggleInspector"), "Wide Add menu lives inside the dock") }
+        openNotes()
+        waitState("Reopening must reveal Project Notes", shown)
+        // FilmCraft has no fullscreen action; no fullscreen pass is claimed by this test.
+    }
+
     func testPanelCanBeAddedReopenedCollapsedAndHidden() throws {
         guard isPad else { throw XCTSkip("The dock is shown only in the wide iPad layout") }
         XCUIDevice.shared.orientation = .landscapeLeft

@@ -26,11 +26,63 @@ final class AppEnvironment {
         return base.appendingPathComponent("FilmCraftMedia", isDirectory: true)
     }
 
-    /// `Documents/Media` (visible in the Files app): media copied from Files.
+    /// Persistent app-owned media, in FilmCraft's iCloud Documents container when available.
+    /// A copy made while offline stays in local Documents; existing projects may reference either location.
     nonisolated static var documentsMediaDirectory: URL {
-        let base = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
-            ?? URL(fileURLWithPath: NSTemporaryDirectory())
+        let fm = FileManager.default
+        let base = fm.url(forUbiquityContainerIdentifier: "iCloud.ca.hologram.filmcraft")?
+            .appendingPathComponent("Documents", isDirectory: true)
+            ?? localDocumentsDirectory
         return base.appendingPathComponent("Media", isDirectory: true)
+    }
+
+    nonisolated static var localDocumentsDirectory: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+            ?? URL(fileURLWithPath: NSTemporaryDirectory())
+    }
+
+    nonisolated static var existingMediaDirectories: [URL] {
+        let local = localDocumentsDirectory.appendingPathComponent("Media", isDirectory: true)
+        let preferred = documentsMediaDirectory
+        return preferred.standardizedFileURL == local.standardizedFileURL ? [local] : [preferred, local]
+    }
+
+    /// Preserve an independent source copy. Reuse identical bytes; never replace the original or an existing copy.
+    nonisolated static func copyIntoOwnedMedia(_ source: URL, preferredName: String? = nil) throws -> URL {
+        let fm = FileManager.default
+        var folder = documentsMediaDirectory
+        do { try fm.createDirectory(at: folder, withIntermediateDirectories: true) }
+        catch {
+            folder = localDocumentsDirectory.appendingPathComponent("Media", isDirectory: true)
+            try fm.createDirectory(at: folder, withIntermediateDirectories: true)
+        }
+        if existingMediaDirectories.contains(where: {
+            source.deletingLastPathComponent().standardizedFileURL == $0.standardizedFileURL
+        }) { return source }
+        let requestedName = URL(fileURLWithPath: preferredName ?? source.lastPathComponent).lastPathComponent
+        let named = URL(fileURLWithPath: requestedName)
+        let base = named.deletingPathExtension().lastPathComponent
+        let ext = named.pathExtension.isEmpty ? source.pathExtension : named.pathExtension
+        for existingFolder in existingMediaDirectories where existingFolder.standardizedFileURL != folder.standardizedFileURL {
+            let names = (try? fm.contentsOfDirectory(atPath: existingFolder.path)) ?? []
+            for name in names where (name as NSString).pathExtension == ext {
+                let stem = (name as NSString).deletingPathExtension
+                guard stem == base || stem.hasPrefix(base + " ") else { continue }
+                let existing = existingFolder.appendingPathComponent(name)
+                if fm.contentsEqual(atPath: source.path, andPath: existing.path) { return existing }
+            }
+        }
+        for index in 0..<1000 {
+            let name = index == 0 ? base : "\(base) \(index + 1)"
+            let destination = folder.appendingPathComponent(name).appendingPathExtension(ext)
+            if fm.fileExists(atPath: destination.path) {
+                if fm.contentsEqual(atPath: source.path, andPath: destination.path) { return destination }
+                continue
+            }
+            try fm.copyItem(at: source, to: destination)
+            return destination
+        }
+        throw CocoaError(.fileWriteFileExists)
     }
 
     nonisolated static func ensureDirectory(_ url: URL) {

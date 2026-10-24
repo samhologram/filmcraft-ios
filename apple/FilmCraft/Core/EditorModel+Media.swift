@@ -27,9 +27,10 @@ extension EditorModel {
         guard media.contains(where: \.offline) else { return }
         let handle = self.handle
         let cache = AppEnvironment.mediaCacheDirectory.path
-        let documents = AppEnvironment.documentsMediaDirectory.path
         let stillOffline: [UInt64] = await Task.detached(priority: .userInitiated) {
-            _ = handle.relinkMissing(resolverDir: documents)
+            for folder in AppEnvironment.existingMediaDirectories {
+                _ = handle.relinkMissing(resolverDir: folder.path)
+            }
             return handle.relinkMissing(resolverDir: cache)
         }.value
         refresh()
@@ -74,7 +75,11 @@ extension EditorModel {
         var failures: [String] = []
         for id in localIdentifiers {
             do {
-                paths.append(try await photos.materialize(id).path)
+                let cached = try await photos.materialize(id)
+                let owned = try await Task.detached(priority: .userInitiated) {
+                    try AppEnvironment.copyIntoOwnedMedia(cached)
+                }.value
+                paths.append(owned.path)
             } catch {
                 failures.append(errorText(error))
                 Log.media.error("materialize failed: \(errorText(error), privacy: .public)")
@@ -86,7 +91,7 @@ extension EditorModel {
 
     // MARK: Files
 
-    /// Copies Files-app items into `Documents/Media` (security scoped), imports them and inserts them at the playhead.
+    /// Copies Files-app items into FilmCraft's persistent Media folder (security scoped), then imports and places them.
     func addFiles(_ urls: [URL], insertAtPlayhead: Bool) async {
         guard !urls.isEmpty else { return }
         isAddingMedia = true
@@ -96,38 +101,12 @@ extension EditorModel {
             for url in urls {
                 let scoped = url.startAccessingSecurityScopedResource()
                 defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-                if let copy = Self.copyIntoDocumentsMedia(url) { paths.append(copy.path) }
+                if let copy = try? AppEnvironment.copyIntoOwnedMedia(url) { paths.append(copy.path) }
             }
             return paths
         }.value
         if copied.count < urls.count { lastError = "Some files could not be copied into FilmCraft's Media folder." }
         await importAndPlace(copied, insertAtPlayhead: insertAtPlayhead)
-    }
-
-    /// Copies `url` into `Documents/Media`, keeping an identical existing copy and numbering name clashes.
-    nonisolated private static func copyIntoDocumentsMedia(_ url: URL) -> URL? {
-        let fm = FileManager.default
-        let folder = AppEnvironment.documentsMediaDirectory
-        AppEnvironment.ensureDirectory(folder)
-        if url.deletingLastPathComponent().standardizedFileURL == folder.standardizedFileURL { return url }
-        let base = url.deletingPathExtension().lastPathComponent
-        let ext = url.pathExtension
-        for index in 0..<1000 {
-            let name = index == 0 ? base : "\(base) \(index + 1)"
-            let candidate = folder.appendingPathComponent(name).appendingPathExtension(ext)
-            if fm.fileExists(atPath: candidate.path) {
-                if fm.contentsEqual(atPath: url.path, andPath: candidate.path) { return candidate }
-                continue
-            }
-            do {
-                try fm.copyItem(at: url, to: candidate)
-                return candidate
-            } catch {
-                Log.media.error("copy failed: \(errorText(error), privacy: .public)")
-                return nil
-            }
-        }
-        return nil
     }
 
     // MARK: Import + place

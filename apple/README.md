@@ -46,6 +46,10 @@ parameters, customizable toolbar, remembered layout and values, multi-window —
 Media comes in from Photos, Files/iCloud, drag & drop and paste, either as a new project or into the current bin /
 the timeline at the playhead (CONTRACT §8).
 
+The launch browser's **New from Media** action opens the system Photos picker before creating a `.fcproj`;
+selecting one image or movie places an app-owned copy on a new timeline, and cancelling creates no project. Imported
+media is stored in FilmCraft's iCloud Documents/Media folder when available, with a local Documents fallback.
+
 Per-idiom degradation (iPad windows are resizable): three zones + inspector column → inspector as a sheet below
 ~900 pt → iPhone layout (tool strip + sheets) in compact width. Nothing falls off screen: tool strips scroll as the
 last resort.

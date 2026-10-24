@@ -13,10 +13,14 @@ Historical findings and current validation status.
   (`.keepAlways`) and that `run-ui-tests.sh` exports attachments from the right test ids.
 
 ## Current focused UI status (2026-10-24)
-- Three iPad user-story cases executed against the first dock bundle and failed before their full assertions:
-  the wide dock menu existed but was not hittable, the portrait More menu was absent, and the split story added
-  a real clip but could not find toolbar Undo. The demo `WindowGroup` lacked a navigation host for its system toolbar.
-  `DemoWindow` now provides a `NavigationStack`; the rebuilt bundle and early text hierarchy attachment await rerun.
+- The first three iPad user-story cases failed before their full assertions: the wide dock menu existed but was not
+  hittable, portrait More was absent, and Split could not find toolbar Undo. `DemoWindow` now has the missing
+  `NavigationStack`; this historical result does not measure the current toolbar.
+- Against commit `a267d3c7`, Split/Undo/Redo **passed** on iPad with an observed selected clip and playhead inside it.
+  Both panel stories executed but failed because the test could not reach `panel.projectNotes` in the long native
+  Panels menu after bounded scrolling. The dock and sheet assertions after that selection remain unverified.
+- The rightmost panels toggle, New from Media launch picker, persistent media-copy path, and ownership regression
+  compile in a generic simulator bundle; focused runtime tests and actual iCloud availability remain unverified.
 - The 24 panels routed through `GenericPanel` still need dedicated content and action tests; panel reachability alone
   is not feature completion.
 - Full-screen viewer mode and its dedicated exit control are not implemented in the current FilmCraft Swift UI;

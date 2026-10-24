@@ -43,6 +43,15 @@ PhotoCraft-inspired panel UX, pre-commit dead-code review and the latest physica
 - Toolbar update (user request, 2026-10-24): every app has a sidebar icon in its toolbar, matching PhotoCraft,
   to hide/show the panels bar. Hiding preserves the selected panel and dock layout; showing restores them and
   keeps the selected tab visible. Opening a panel from a menu reveals the bar. Retain the fullscreen exit control.
+- Latest toolbar placement correction: the panels toggle is the rightmost toolbar action on every layout.
+  LightCraft must have only one leading library-navigation sidebar toggle, plus the distinct rightmost panels toggle.
+- Latest storage correction supersedes earlier platform write-back guidance: in ALL apps, including LightCraft,
+  editing an image creates an editable copy in the app's iCloud Drive folder (local app Documents fallback when
+  iCloud is unavailable). Work on that copy only; never overwrite the original or automatically apply edits back
+  to the source Photos asset. Preserve native edit settings and reopen the same source's existing copy.
+- New-from-photo update (user report, 2026-10-24): in every app offering this action, open the system media
+  library before creating a document/project. Cancellation leaves no blank document. Create the new content
+  only after a successful selection/import, with the chosen image visible; an empty white canvas is a failure.
 - Token economy is explicitly requested: keep orchestration turns and reports short, reuse existing agent contexts,
   inspect bounded error/evidence excerpts, avoid repeated audits or unchanged passing checks, and reuse compatible
   build artifacts. Spend Astra tokens only on test/story drafting that is actually needed.
@@ -59,9 +68,9 @@ PhotoCraft-inspired panel UX, pre-commit dead-code review and the latest physica
 ## 0b. Product shape (decide before writing UI; ask the user when the category leaves it open)
 - **Data model follows the category, not the template.** A document app (image, vector, layout, PDF) uses
   `DocumentGroup`. A library app (photos, media, catalog) uses the platform's own library as the user's library (Photos
-  via PhotoKit, Music, Files…): open and edit items in place, keep the engine's catalog as an internal cache keyed by the
-  platform's ids, and write results back through the platform's non-destructive editing API with the engine's settings
-  as re-editable adjustment data. Never make the user "import" what the platform already holds.
+  via PhotoKit, Music, Files…) for browsing and selection. Editing opens an app-owned copy under the latest storage
+  rule above; keep source identifiers mapped to that copy and retain editable engine settings. Do not automatically
+  write edits back to the source asset or require a manual import before browsing the platform library.
 - Document apps own a folder: "<App>" in iCloud Drive (ubiquity container, document scope public, app icon in Files),
   falling back to On My iPad › <App> (`UIFileSharingEnabled` + `LSSupportsOpeningDocumentsInPlace`) when iCloud is
   unavailable (free Personal Team, signed out). New documents and copies go there; iOS has no API to set the launch
@@ -69,7 +78,7 @@ PhotoCraft-inspired panel UX, pre-commit dead-code review and the latest physica
 - Opening a foreign format (PNG, JPEG, HEIC, PSD, SVG…) creates an editable copy in the native format in that folder,
   saved as soon as an edit happens (leaving the editor must leave a file); the original is never modified. Reopening
   the same original reopens its copy (remember source → copy) instead of making "name 2". Export/Share writes
-  foreign formats back out. Library apps (LightCraft) instead write back to the platform library.
+  foreign formats back out as explicit exports. LightCraft follows the same copy-only editing rule.
 - When the user's wording is ambiguous ("use the internal library"), ask once with concrete options; then re-brief
   every running agent on the decision immediately.
 - Follow Apple's HIG for iPad and iPhone as closely as possible: system components, materials (Liquid Glass),
@@ -152,7 +161,7 @@ PhotoCraft-inspired panel UX, pre-commit dead-code review and the latest physica
 ## 4. App (`apple/<App>`, XcodeGen `project.yml`, iOS 26+, Swift 6)
 - Scene per §0b: `DocumentGroup` + `ReferenceFileDocument` (engine history on the scene `UndoManager`, autosave via
   `snapshot`) for document apps; a `WindowGroup` over the platform library for library apps (engine history still on
-  the window's `UndoManager`; write-back on leaving the editor).
+  the window's `UndoManager`; persist the app-owned editable copy on leaving the editor).
 - Reference-document creation, reading and snapshots must be safe outside MainActor. Store the thread-safe engine
   handle directly and create the UI model lazily on MainActor; never assume document callbacks are main-thread.
   Native autosave verification must cover scene UndoManager registration and edit → close → reopen of the same URL.
@@ -267,7 +276,7 @@ PhotoCraft-inspired panel UX, pre-commit dead-code review and the latest physica
   or a real bug. Record full alert messages.
 - Platform integration tests seed the simulator: `simctl addmedia` for photos, `simctl privacy … grant|revoke photos`
   for permission states (test denied and limited too), files placed in the app container for file imports. Verify the
-  write-back through the platform API, not just the UI.
+  app-owned copy and retained edit settings, plus unchanged source bytes/asset content, not just the UI.
 - Run: `xcodebuild test-without-building -destination id=<sim> -resultBundlePath x.xcresult`; export attachments with
   `xcresulttool export attachments` (`manifest.json` maps names to files); retain text evidence, with no screenshots.
 - For focused no-screenshot test loops, pass `-collect-test-diagnostics never`: Xcode's automatic failure

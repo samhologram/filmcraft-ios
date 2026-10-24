@@ -32,12 +32,15 @@ Upstream files (everything outside `apple/`, `FORK.md`, `.github/workflows/apple
   foreign file (FCPXML/EDL/OTIO/Premiere XML via the engine's interchange importers, or a movie/image) creates a native
   `.fcproj` there, saved on first edit, the original untouched; reopening the same original reopens that project
   (map original bookmark → project in `UserDefaults`). Export/Share renders out. *Gap: not implemented.*
-- **Photos is the primary media source** inside the editor (PhotoKit, not `PhotosPicker` copies): the media browser
+- **Photos is the primary media source** inside the editor (PhotoKit for browsing): the media browser
   lists the user's videos/photos and albums; adding one never shows an "import" step. The engine needs a file path,
   so the asset is materialized into the **media cache** `Library/Caches/FilmCraftMedia/PH-<b64url(localIdentifier)>.<ext>`
-  (`PHAssetResourceManager`, original resource) and the engine imports that path. The file name encodes the asset id,
-  so on open any missing `PH-…` media is re-materialized from Photos and relinked (container paths change between
-  installs). Files-app media (secondary) is copied into `Documents/Media/` (visible in Files).
+  (`PHAssetResourceManager`, original resource), then independently copied into FilmCraft's persistent `Documents/Media`
+  in its iCloud container when available, or local Documents when unavailable. The engine imports the owned copy;
+  Photos and Files originals are never edited. Identical source bytes reuse an existing copy. Older projects can
+  still relink from the cache or local Documents. The launch scene's **New from Media** opens the system photo/movie
+  picker before project creation; cancellation creates no document. Selection imports and places the owned copy in
+  a new native `.fcproj` project, then the system document browser asks where to save it.
 - **Export** renders H.264 + AAC MP4 with the engine encoder to a temp file, then saves it to Photos
   (add-only authorization, `PHAssetCreationRequest`) or Files (`fileExporter`) / share sheet.
 - Engine undo history is mirrored on the scene `UndoManager` (one registration per `historyId` change).
@@ -358,7 +361,8 @@ in-app PhotoKit browser, plus `PhotosPicker` when Photos access is denied/limite
 "Import" (`media.import`), File ▸ Import (`command.file.import`), the palette, and context menus on bins and the
 timeline ("Add Media Here").
 
-**Current gaps (as of a2698f0b).** No "New Project from Media" flow (new documents start empty); no `PhotosPicker`
+**Current gaps.** The launch flow now supports one Photos image or movie as a new project; multiple selections and
+Files-at-launch and matching the new sequence settings to the first clip are not yet implemented. No `PhotosPicker`
 fallback for denied/limited access; no drag & drop or paste import; no bin targeting (media goes to the project root);
 Import lives in the global toolbar (`addMedia`), not the Media panel header.
 

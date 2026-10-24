@@ -104,15 +104,13 @@ struct PadEditorView: View {
 
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
-            PanelVisibilityButton(model: model, usesDock: showsPanelColumn)
-        }
         ToolbarItemGroup(placement: .topBarTrailing) {
             UndoRedoButtons(model: model)
             ToolbarToolMenu(model: model)
             PaletteButton(model: model)
             ShareButton(model: model)
             OverflowMenu(model: model, includesPanels: !showsPanelColumn || !model.inspectorVisible)
+            PanelVisibilityButton(model: model, usesDock: showsPanelColumn)
         }
     }
 }

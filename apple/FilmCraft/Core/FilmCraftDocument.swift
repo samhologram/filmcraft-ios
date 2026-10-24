@@ -35,6 +35,20 @@ final class FilmCraftDocument: ReferenceFileDocument, @unchecked Sendable {
         Log.document.info("new document (demo: \(AppEnvironment.isDemo, privacy: .public))")
     }
 
+    /// The media is already an independent app-owned copy. Prepare the complete project before the system creates it.
+    static func fromOwnedMedia(_ url: URL) throws -> FilmCraftDocument {
+        let name = url.deletingPathExtension().lastPathComponent
+        let handle = ProjectHandle.newProject(name: name.isEmpty ? "Untitled" : name)
+        let ids = try handle.importFiles(paths: [url.path])
+        guard !ids.isEmpty else { throw CocoaError(.fileReadCorruptFile) }
+        let params = try JSONSerialization.data(withJSONObject: ["items": ids, "time": 0, "insert": true])
+        guard let json = String(data: params, encoding: .utf8) else { throw CocoaError(.fileReadCorruptFile) }
+        _ = try handle.execute(id: "timeline.place", paramsJson: json)
+        return FilmCraftDocument(handle: handle)
+    }
+
+    private init(handle: ProjectHandle) { self.handle = handle }
+
     required init(configuration: ReadConfiguration) throws {
         guard let data = configuration.file.regularFileContents, let json = String(data: data, encoding: .utf8) else {
             throw CocoaError(.fileReadCorruptFile)
