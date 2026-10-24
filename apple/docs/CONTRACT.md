@@ -331,3 +331,19 @@ checks only literals passed to run/present/runUI and `command.<id>` identifiers.
   remembered; last export/command-form values are not (rule 7).
 - Import (`addMedia`) is in the global toolbar (also §6 rule 3). Multi-window is declared in `project.yml` but
   untested.
+
+## 8. Start from / import media (cookbook §0b)
+
+**Rules.** A new project can start from media: the launch/new-document flow offers "New Project from Media…"
+(Photos + Files), creating the project and a sequence matching the first clip, with all picked items on the timeline
+in pick order. Into an open project, media is imported into the current context — the selected bin, or straight onto
+the timeline at the playhead (`EditorModel.addFromPhotos/addFiles(insertAtPlayhead:)`) — from the camera roll (the
+in-app PhotoKit browser, plus `PhotosPicker` when Photos access is denied/limited), Files/iCloud Drive
+(`fileImporter`, movies/images/audio, security-scoped copy into `Documents/Media/`), drag & drop and paste
+(`pasteDestination`/⌘V of movie, image, audio or file URLs). Entry points: new-project flow, Media panel header
+"Import" (`media.import`), File ▸ Import (`command.file.import`), the palette, and context menus on bins and the
+timeline ("Add Media Here").
+
+**Current gaps (as of a2698f0b).** No "New Project from Media" flow (new documents start empty); no `PhotosPicker`
+fallback for denied/limited access; no drag & drop or paste import; no bin targeting (media goes to the project root);
+Import lives in the global toolbar (`addMedia`), not the Media panel header.

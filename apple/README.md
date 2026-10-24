@@ -43,6 +43,9 @@ Hyper-productive, Apple-clean (CONTRACT §7): frequent edits ≤ 1 tap from the 
 on a hardware keyboard, palette, context menus, drag & drop, two-/three-finger-tap undo/redo, scrubbable timecode and
 parameters, customizable toolbar, remembered layout and values, multi-window — with system components only.
 
+Media comes in from Photos, Files/iCloud, drag & drop and paste, either as a new project or into the current bin /
+the timeline at the playhead (CONTRACT §8).
+
 Per-idiom degradation (iPad windows are resizable): three zones + inspector column → inspector as a sheet below
 ~900 pt → iPhone layout (tool strip + sheets) in compact width. Nothing falls off screen: tool strips scroll as the
 last resort.
