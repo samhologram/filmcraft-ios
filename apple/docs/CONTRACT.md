@@ -289,3 +289,45 @@ checks only literals passed to run/present/runUI and `command.<id>` identifiers.
 - Menu bar (`App/EditorCommands.swift`): desktop Clip/Sequence/Markers/Graphics and Titles menus are appended after
   the system View menu, and desktop File/Edit/View items are not merged into the system groups — violates rule 4.
 - `PanelTourUITests` records empty panels as notes, not failures — violates rule 5.
+
+## 7. Productivity, Apple-clean (cookbook §0b)
+
+**Rules.**
+1. **≤ 1 tap** from the viewer or timeline for every frequent action: play/pause, split at playhead, delete/ripple
+   delete, trim, add marker, set in/out, undo/redo, add media at playhead, select tool, open Effect Controls of the
+   selected clip.
+2. **Hardware keyboard = desktop shortcuts**, same keys, generated from the catalogs (`CommandInfo.shortcut`,
+   `UiCommandInfo.shortcut`, tools): J/K/L shuttle (J = reverse shuttle, repeated presses speed up), Space, I/O,
+   ⇧I/⇧O, C/V/B/N/R/Y/U/P/H/Z/T tools, ⌘K add edit, Q/W ripple trim, ←/→ frame step, ↑/↓ edit points, M marker,
+   ⌘Z/⇧⌘Z. Shown in the iPad ⌘-hold overlay through the menu bar. `⌘⇧P` (and `⌘K` if not taken by Add Edit — use the
+   desktop's palette shortcut) opens the command palette.
+3. **Context menus** on clips (`clip.<id>`), tracks (`track.<id>`), markers, project media/bins (`media.<id>`) and
+   Photos assets, built from the desktop menu sections (`CommandMenuContent`), every item `command.<id>`.
+4. **Drag & drop**: Photos assets and project media onto the timeline (insert at the drop time/track), Files/other
+   apps into the media panel (`dropDestination` for movies/images/audio), clips within the timeline (move), and out
+   to other apps as exported movie (`draggable` with a lazy `Transferable` export) where cheap.
+5. **Gestures**: two-finger tap = undo, three-finger tap = redo (on the editor root, not inside text fields); pinch
+   = timeline zoom; long-press = context menu.
+6. **Scrubbable fields**: timecode (`timecode`) and every numeric parameter (Effect Controls, command forms) can be
+   dragged horizontally to change the value (one undo step per drag) and tapped to type.
+7. **Customizable toolbar** (`.toolbar(id:)` + `ToolbarItem(id:)` + `.toolbarRole(.editor)`), **remember** last
+   layout (panel dock, zoom, inspector), last export settings and last command-form values (`@SceneStorage` /
+   `@AppStorage`), **multi-window** (each window = one document scene; `UIApplicationSupportsMultipleScenes`).
+8. **Clean**: system components, SF Symbols, semantic colours; one primary action per area, everything else in
+   menus, panel headers or the palette; no custom chrome.
+9. The Haiku feature pass reports **taps-to-do** for the top 10 workflows: add a clip from Photos at the playhead;
+   split + delete a segment; trim a clip end; reorder two clips; add a cross-dissolve; adjust volume of a clip; add a
+   title; colour-correct (Lumetri exposure); add a marker and jump to it; export to Photos.
+
+**Current gaps (as of a99eea88).**
+- Context menus exist only via `CommandMenuContent` in menus; no `.contextMenu` on clips, tracks, markers, media or
+  assets (rule 3).
+- No drag & drop anywhere (`dropDestination`/`draggable` absent) (rule 4).
+- No two/three-finger tap undo/redo (rule 5).
+- Keyboard: only a hand-written subset of single keys in `UI/Shared/EditorRootView.swift`; J steps one frame
+  instead of reverse shuttle; not generated from the catalog shortcuts (rule 2).
+- Timecode and numeric parameter fields are not scrubbable (rule 6).
+- Toolbar is not customizable (no `.toolbar(id:)`/`.toolbarRole(.editor)`); only the Pad split fraction is
+  remembered; last export/command-form values are not (rule 7).
+- Import (`addMedia`) is in the global toolbar (also §6 rule 3). Multi-window is declared in `project.yml` but
+  untested.

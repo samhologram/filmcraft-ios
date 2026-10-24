@@ -39,6 +39,10 @@ Panels follow the Premiere model (CONTRACT §6): every desktop panel exists, ope
 menu, and can be added, hidden, collapsed and stacked/reordered on iPad (arrangement persisted); panel-owned actions
 sit in the panel header; the iPad menu bar merges the desktop menus into the iPadOS system groups in desktop order.
 
+Hyper-productive, Apple-clean (CONTRACT §7): frequent edits ≤ 1 tap from the viewer/timeline, every desktop shortcut
+on a hardware keyboard, palette, context menus, drag & drop, two-/three-finger-tap undo/redo, scrubbable timecode and
+parameters, customizable toolbar, remembered layout and values, multi-window — with system components only.
+
 Per-idiom degradation (iPad windows are resizable): three zones + inspector column → inspector as a sheet below
 ~900 pt → iPhone layout (tool strip + sheets) in compact width. Nothing falls off screen: tool strips scroll as the
 last resort.

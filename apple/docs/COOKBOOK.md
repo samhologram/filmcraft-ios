@@ -31,8 +31,9 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
   never kill a paused (`T`) build, and do non-compile work while paused.
 - Token-heavy work first: CPU is the bottleneck, agents are not. Front-load writing, review swarms, test authoring
   and docs in parallel; batch compiles so each build validates as much new code as possible.
-- Low-token mode (when the user asks, e.g. near a usage limit): no new agents; finish the current file, then run only
-  compiles that are ready, record errors for later, keep turns short and don't poll.
+- Low-token mode (when the user asks, e.g. near a usage limit): Opus orchestrates in short turns and delegates the
+  work to Sonnet (code fixes) and Haiku (search, tests); compile and build tasks come first; record errors and batch
+  fixes, don't poll, don't re-read large logs (grep the error lines).
 
 ## 0b. Product shape (decide before writing UI; ask the user when the category leaves it open)
 - **Data model follows the category, not the template.** A document app (image, vector, layout, PDF) uses
@@ -45,6 +46,17 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
 - Follow Apple's HIG for iPad and iPhone as closely as possible: system components, materials (Liquid Glass),
   navigation, gestures, keyboard and pointer, Pencil, Dynamic Type, accessibility, dark and light. Deviate only where
   the category demands it, and say why in a code comment.
+- Hyper-productive, Apple-clean. Pro speed with system looks, by progressive disclosure, not clutter:
+  - Speed: every frequent action ≤ 1 tap from the canvas; every desktop shortcut works with a hardware keyboard
+    (same keys, listed in the menu bar / ⌘-hold overlay); ⌘K command palette over the whole catalog; long-press /
+    right-click context menus on canvas objects, layers and list rows; drag and drop in and out (files, images,
+    layers, reorder); multi-touch shortcuts (two-finger tap undo, three-finger tap redo, pinch/rotate canvas);
+    Pencil double-tap/squeeze and hover; scrubbable numeric fields with exact entry; customizable toolbar
+    (`toolbar(id:)`); remember last tool, panel layout and recent values; multiple windows / Stage Manager.
+  - Clean: system components, SF Symbols, materials and semantic colours; one primary action visible per area,
+    the rest in menus, panel headers or the palette; density adapts to the window (§4) instead of shrinking text;
+    no custom chrome, no decorative colour, no modal where a popover or inline edit works.
+  - Measure it: the feature pass reports taps-to-do for the top 10 workflows of the category; regressions are bugs.
 - Stay faithful to the desktop app's mental model: same tools, panels, names and menu structure, adapted to touch.
 - Pick a reference app (most popular, best-reviewed iPad/iPhone app in the category; verify by current App Store
   rankings), clean-room: behaviour and look only, never assets or code.
