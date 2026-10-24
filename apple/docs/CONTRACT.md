@@ -245,3 +245,47 @@ or UI command uses: `menu.`, `photos.`, `fx.`, `album.`, `asset.`, `media.`, `tr
 `export.`, `import.`, `param.`, `tool.`/`panel.`/`command.` (these three name catalog items). Other widget ids are
 undotted camelCase (`commandSheetRun`, `paletteDone`, `mediaPanel`, `trackMute_<id>`). `scripts/check-command-ids.sh`
 checks only literals passed to run/present/runUI and `command.<id>` identifiers.
+
+## 6. Panels, panel actions and the menu bar (cookbook §4, all-forks rules)
+
+**Rules.**
+1. Every desktop panel (`panel_catalog()`, from `crates/ui-egui/src/dock.rs` `PanelKind::ALL`: Project, Media Browser,
+   Libraries, Info, Effects, Markers, History, Source, Effect Controls, Audio Clip Mixer, Metadata, Program, Timeline,
+   Tools, Audio Meters, Audio Track Mixer, Lumetri Color, Lumetri Scopes, Essential Graphics, Essential Sound, Text to
+   Speech, Properties, Text, Events, Progress, Reference Monitor, Timecode, Project Notes) exists on iOS with its own
+   content and opens from both the panel menu (`menu.panels`) and the Window menu (`command.panel.<id>`). A panel entry
+   that opens nothing, or only a list of loosely related commands, is a bug. Panels excluded on iOS are listed in
+   `bridge/ios-excluded-commands.txt` with a reason and are hidden from both menus.
+2. iPad: panels live in a dock (the top-leading zone plus an optional inspector column) where the user can **add,
+   hide, collapse, and stack/reorder** them like Premiere's panel groups (tabs within a group, groups stacked
+   vertically, drag a tab to reorder or move it between groups, a chevron collapses a group). The arrangement is
+   persisted per window scene (`@SceneStorage`, JSON of `[[panelId]]` + collapsed set) and restorable via Window ▸
+   Workspaces ▸ Reset. Program and Timeline are panels too (the viewer and timeline zones are their default homes).
+   iPhone: every panel opens as a sheet with detents (unchanged).
+3. **Panel-owned actions sit in their panel's header**, not the global toolbar: Media/Project → Import (Photos,
+   Files), New Bin, list/grid; Timeline → Add Track, snapping, linked selection, track height; Effects → search;
+   Effect Controls → reset all; Audio mixers → add/remove track; Markers → add marker; Lumetri → reset. The global
+   toolbar keeps only document-level items: undo/redo, tools menu, panels menu, palette, full screen, share/export.
+   Header ids: `panel.<id>.header`, actions `command.<id>` (engine commands) or `<panelId>.<action>` widget ids under a
+   reserved prefix (e.g. `media.import`, `track.add`).
+4. **iPad menu bar = merge**: keep the iPadOS system groups (app menu, File, Edit, Format, View, Window, Help) and
+   insert the desktop menus and their items in desktop order (File, Edit, Clip, Sequence, Markers, Graphics and
+   Titles, View, Window, Help — `desktop_menu_layout()`): desktop File/Edit/View items go into the system File/Edit/View
+   groups (`CommandGroup(after:)`), desktop-only menus (Clip, Sequence, Markers, Graphics and Titles) sit between Edit
+   and View in that order, Window (with every panel and the workspaces) and Help come last.
+5. Coverage: `PanelTourUITests` opens **and acts on** every panel from `catalogDump`; "opened but empty" and "no
+   action possible" are failures, not notes.
+
+**Current non-compliance (as of 6a8a45a2, to fix when FilmCraft is off hold).**
+- Only 4 panels have content (`panel.project`, `panel.effects`, `panel.effectControls`, `panel.audioTrackMixer` in
+  `UI/Panels/PanelHost.swift`); the other 24 fall back to `GenericPanel` (a command list) — violates rule 1. Missing
+  real content for: Media Browser, Libraries, Info, Markers, History, Source, Audio Clip Mixer, Metadata, Program,
+  Timeline, Tools, Audio Meters, Lumetri Color, Lumetri Scopes, Essential Graphics, Essential Sound, Text to Speech,
+  Properties, Text, Events, Progress, Reference Monitor, Timecode, Project Notes (or an iOS exclusion with reason).
+- Panels are fixed chips + a "More" menu (`UI/Panels/PanelHost.swift`, `UI/Pad/PadEditorView.swift`): no add/hide,
+  collapse, stacking, reordering or persistence — violates rule 2. Program and Timeline are fixed zones, not panels.
+- `addMedia` (Import) is a global toolbar item (`UI/Shared/TopBarControls.swift`) instead of the Media panel header;
+  no panel has a header action row; Add Track and markers actions are not in their panels — violates rule 3.
+- Menu bar (`App/EditorCommands.swift`): desktop Clip/Sequence/Markers/Graphics and Titles menus are appended after
+  the system View menu, and desktop File/Edit/View items are not merged into the system groups — violates rule 4.
+- `PanelTourUITests` records empty panels as notes, not failures — violates rule 5.

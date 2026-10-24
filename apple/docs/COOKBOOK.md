@@ -107,12 +107,24 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
   View, Stage Manager. Order the degradation: full layout → denser (smaller controls, icons only, merged groups) →
   collapse into a menu or sheet → scroll as the last resort. Never let a control silently fall off screen. Labels in
   chips and buttons never wrap mid-word (`lineLimit(1)`, `ViewThatFits` falling back to icons).
+- Full-screen canvas mode in every app (iPad and iPhone): a toolbar button and View-menu command (⌃⌘F) hide every
+  panel, sidebar, inspector, tool strip and toolbar plus the status bar/home indicator, leaving only the canvas
+  (viewer for video, loupe for photos) with its gestures. One small floating Liquid Glass button (corner, safe area)
+  returns to the standard layout; Esc also exits. Ids `control.fullscreen` / `control.fullscreen.exit`.
 - Show controls under the same conditions as the desktop (mode-dependent sections, e.g. HDR-only or B&W-only sliders);
   read the desktop panel code for the rule.
 - Every interactive element has a stable accessibility identifier derived from its model id (`tool.<id>`,
   `panel.<id>`, `command.<id>`, `control.<id>`), on every surface that shows it.
-- iPad menu bar mirrors the desktop menu order, generated from the desktop layout; Window and Help after the system
-  groups. Single-key tool shortcuts = zero-size hidden buttons on the editor view.
+- iPad menu bar = merge, not replace: keep the iPadOS system groups (app, File basics, Edit undo/clipboard, Format,
+  View, Window, Help) and insert the desktop's menus and items in the desktop order, generated from the desktop
+  layout, into the matching system groups or as their own top-level menus; Window and Help last. A bare iPadOS
+  default menu bar is a regression. Single-key tool shortcuts = zero-size hidden buttons on the editor view.
+- Panels work like the desktop (Photoshop-style): every desktop panel (adjustments, curves, levels, histogram,
+  properties, layers…) exists and opens from the right-side panel menu and the Window menu; panels can be added,
+  hidden, collapsed and stacked/reordered in the inspector column, and the arrangement persists per app. A panel
+  entry that opens nothing is a bug: tours must open and act on every panel. iPhone shows them as sheets.
+- Panel-owned actions live in their panel's header, as on the desktop (e.g. "add adjustment layer", new layer,
+  mask, delete in the Layers panel), not in the global toolbar.
 - Launch: for `DocumentGroup`, `DocumentGroupLaunchScene` with system background and the app icon in an overlay laid out
   from `titleViewFrame`; for a library app, open straight onto the library.
 - Platform permissions (Photos read/write, add-only) have usage strings; denied and limited states have their own UI.
@@ -195,5 +207,9 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
   --project-root apple` → `xcodebuild … -destination id=<device> -allowProvisioningUpdates
   -allowProvisioningDeviceRegistration DEVELOPMENT_TEAM=<team>` → `devicectl device install app` + `process launch`.
   Pass the team on the command line, never commit it. Personal Team apps expire after 7 days; reinstall.
+  "No Accounts" from an agent's xcodebuild = the sandboxed shell can't read the Apple ID token in the login keychain;
+  signing builds need the shell sandbox off (a permission the user approves). The Apple ID must be signed in to
+  Xcode → Settings → Accounts (quit Xcode with ⌘Q so it saves). Developer Mode on (Settings → Privacy & Security).
+  Keep the device build dirs and a reinstall script so the 7-day re-sign is one command.
 - Install on a device only an app that passed its latest simulator smoke test ("if functional").
 - A device build is CPU work: give it a slot in `.build.priority` like any other build.

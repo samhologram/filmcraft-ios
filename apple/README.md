@@ -35,6 +35,10 @@ Conventions taken from them:
    on clips and handles.
 10. **Projects are documents** in the system document browser (open, rename, duplicate, share `.fcproj`).
 
+Panels follow the Premiere model (CONTRACT §6): every desktop panel exists, opens from the panel menu and the Window
+menu, and can be added, hidden, collapsed and stacked/reordered on iPad (arrangement persisted); panel-owned actions
+sit in the panel header; the iPad menu bar merges the desktop menus into the iPadOS system groups in desktop order.
+
 Per-idiom degradation (iPad windows are resizable): three zones + inspector column → inspector as a sheet below
 ~900 pt → iPhone layout (tool strip + sheets) in compact width. Nothing falls off screen: tool strips scroll as the
 last resort.
