@@ -123,6 +123,7 @@ extension EditorModel {
         case "window.workspace.allpanels", "window.workspace.reset":
             activePanel = nil
             inspectorVisible = true
+            panelDockResetTick += 1
             return true
         default:
             guard let word = Self.workspacePanels[id] else {

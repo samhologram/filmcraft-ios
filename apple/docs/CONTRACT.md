@@ -80,7 +80,7 @@ Every exported fn runs engine code under `catch_unwind` and never panics; poison
 
 #[derive(uniffi::Record)] pub struct ProjectState {
     pub revision: u64,              // bumps on every call that may change anything
-    pub history_id: u64,            // changes when an undo step is recorded / undone / redone
+    pub history_id: u64,            // monotonic change token; undo/redo mint a fresh id, not an earlier position id
     pub can_undo: bool, pub can_redo: bool,
     pub undo_label: Option<String>, pub redo_label: Option<String>,
     pub dirty: bool,
@@ -235,7 +235,8 @@ Entry views: the scene builds `EditorRootView(model: document.model)` (UI, `UI/S
 `command(id)`, `label(id)`, `shortcut(id) -> KeyboardShortcut?`, `params(id)`, `isExcludedOnIOS(id)`.
 
 Demo: launch argument `-FilmCraftDemo` opens a new untitled document built from `ProjectHandle.demo()` (seeds on
-create), sets `isDemoReady = true` after the first program frame rendered.
+create), sets `isDemoReady = true` after the first program frame rendered. The demo `WindowGroup` wraps its
+`EditorScene` in a `NavigationStack`, matching the document scene's navigation host so editor toolbars are present.
 
 ## 5. Accessibility identifiers (UI tests drive only these)
 
@@ -281,16 +282,20 @@ checks only literals passed to run/present/runUI and `command.<id>` identifiers.
 5. Coverage: `PanelTourUITests` opens **and acts on** every panel from `catalogDump`; "opened but empty" and "no
    action possible" are failures, not notes.
 
-**Current non-compliance (as of 6a8a45a2, to fix when FilmCraft is off hold).**
+**Current non-compliance (updated 2026-10-24).**
 - Only 4 panels have content (`panel.project`, `panel.effects`, `panel.effectControls`, `panel.audioTrackMixer` in
   `UI/Panels/PanelHost.swift`); the other 24 fall back to `GenericPanel` (a command list) — violates rule 1. Missing
   real content for: Media Browser, Libraries, Info, Markers, History, Source, Audio Clip Mixer, Metadata, Program,
   Timeline, Tools, Audio Meters, Lumetri Color, Lumetri Scopes, Essential Graphics, Essential Sound, Text to Speech,
   Properties, Text, Events, Progress, Reference Monitor, Timecode, Project Notes (or an iOS exclusion with reason).
-- Panels are fixed chips + a "More" menu (`UI/Panels/PanelHost.swift`, `UI/Pad/PadEditorView.swift`): no add/hide,
-  collapse, stacking, reordering or persistence — violates rule 2. Program and Timeline are fixed zones, not panels.
-- `addMedia` (Import) is a global toolbar item (`UI/Shared/TopBarControls.swift`) instead of the Media panel header;
-  no panel has a header action row; Add Track and markers actions are not in their panels — violates rule 3.
+- The iPad inspector now uses `UI/Panels/PanelDockView.swift`: scene-persisted groups, tabs, add/hide, collapse,
+  stack and reorder. Opening from Window selects and scrolls the tab into view. Program and Timeline remain fixed
+  zones instead of movable dock panels, and their panel content is still generic — rule 2 remains incomplete.
+- Narrow-window and iPhone panel sheets retain a tab for a panel selected through Window/More and scroll to it;
+  reopening that same panel requests a fresh reveal even if its selection did not change.
+- Import is in the Media/Project panel header on wide iPad; the iPhone/narrow-window toolbar retains its import
+  entry until those sheet layouts have panel-owned header actions. Add Track, markers and other panel actions remain
+  incomplete — rule 3 remains incomplete.
 - Menu bar (`App/EditorCommands.swift`): desktop Clip/Sequence/Markers/Graphics and Titles menus are appended after
   the system View menu, and desktop File/Edit/View items are not merged into the system groups — violates rule 4.
 - `PanelTourUITests` records empty panels as notes, not failures — violates rule 5.

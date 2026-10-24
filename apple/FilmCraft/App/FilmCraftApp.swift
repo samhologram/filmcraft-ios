@@ -49,7 +49,11 @@ struct DemoApp: App {
 
 private struct DemoWindow: View {
     var body: some View {
-        EditorScene(model: DemoApp.document.model)
+        // WindowGroup does not provide DocumentGroup's navigation host. Keep the demo editor inside one so its
+        // system toolbar (Undo, More, panels, export) is available during UI tests and demo use.
+        NavigationStack {
+            EditorScene(model: DemoApp.document.model)
+        }
     }
 }
 

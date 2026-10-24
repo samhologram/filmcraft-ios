@@ -1,19 +1,21 @@
 # Known issues (FilmCraft iOS)
 
-Recorded while the port is on hold; fix when work resumes.
+Historical findings and current validation status.
 
 ## From the first iPad simulator run (iPad Pro 11-inch (M5), build d7786081)
 - UI `testDemoDark` / `testDemoLight`: pass (≈ 39 s each), no crash.
-- Unit 26/27: **FAIL** `EditorModelTests.runRegistersOneUndoStepPerCommand()` (EditorModelTests.swift:37,
-  `model.state.historyId == afterFirst`): the engine history id moves more than once per `run()`, i.e. one command
-  produces more than one history step (or `refresh` journals something). Check `EditorModel.run`/`finishMutation`
-  and the bridge's `history_id` bump in `apple/bridge/src/lib.rs` (`execute`) — the id must change exactly once per
-  journaled command.
-  Likely cause instead: the test asserts that after `manager.undo()` the history id **equals** the id before the
-  second command, but CONTRACT §3 only says `history_id` *changes* on undo — if the bridge mints a fresh id per
-  change (counter), undo yields a new id, not the old one. Decide: either the bridge derives `history_id` from the
-  engine's history position (so undo restores it; preferred, makes ids comparable) or the test compares
-  `canUndo/canRedo`/undo labels. Update CONTRACT §3 accordingly.
+- Unit 26/27: `EditorModelTests.runRegistersOneUndoStepPerCommand()` failed because it expected undo to restore
+  an old `historyId`. The bridge mints a fresh change token on undo/redo. The test now compares serialized project
+  state after each UndoManager step and still checks undo/redo availability. The current iPad run passed all
+  7 `EditorModelTests`; the original 26/27 failure is historical.
 - **No `-notes` attachments were found** in the UI run: the demo tests must always attach notes (even "nothing
   missing"), otherwise a green run can be hollow. Check `UITestSupport.swift` attachment lifetime
   (`.keepAlways`) and that `run-ui-tests.sh` exports attachments from the right test ids.
+
+## Current focused UI status (2026-10-24)
+- Three iPad user-story cases executed against the first dock bundle and failed before their full assertions:
+  the wide dock menu existed but was not hittable, the portrait More menu was absent, and the split story added
+  a real clip but could not find toolbar Undo. The demo `WindowGroup` lacked a navigation host for its system toolbar.
+  `DemoWindow` now provides a `NavigationStack`; the rebuilt bundle and early text hierarchy attachment await rerun.
+- The 24 panels routed through `GenericPanel` still need dedicated content and action tests; panel reachability alone
+  is not feature completion.

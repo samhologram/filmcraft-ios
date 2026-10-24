@@ -22,30 +22,39 @@ import Testing
         manager.endUndoGrouping()
     }
 
-    @Test func runRegistersOneUndoStepPerCommand() {
+    @Test func runRegistersOneUndoStepPerCommand() throws {
         let (model, manager) = makeModel()
         #expect(!manager.canUndo)
         let base = model.state.historyId
+        let initialProject = try model.handle.projectJson()
         grouped(manager) { model.run("file.newBin", ["name": "A"]) }
         #expect(model.state.historyId != base)
         #expect(manager.canUndo)
         let afterFirst = model.state.historyId
+        let firstProject = try model.handle.projectJson()
         grouped(manager) { model.run("file.newBin", ["name": "B"]) }
         #expect(model.state.historyId != afterFirst)
+        let secondProject = try model.handle.projectJson()
+        #expect(secondProject != firstProject)
 
         manager.undo()
-        #expect(model.state.historyId == afterFirst, "one manager step undoes exactly the last command")
+        #expect(model.state.historyId != afterFirst, "undo is a new history transition")
+        #expect(try model.handle.projectJson() == firstProject, "one manager step undoes only the last bin")
         #expect(model.state.canUndo)
         #expect(model.state.canRedo)
         #expect(manager.canRedo)
         #expect(model.lastError == nil)
 
         manager.undo()
+        #expect(try model.handle.projectJson() == initialProject)
         #expect(!model.state.canUndo)
         #expect(model.lastError == nil)
 
         manager.redo()
         #expect(model.state.canUndo)
+        #expect(try model.handle.projectJson() == firstProject, "redo restores the first command")
+        manager.redo()
+        #expect(try model.handle.projectJson() == secondProject, "the second redo restores the second command")
         #expect(model.lastError == nil)
     }
 

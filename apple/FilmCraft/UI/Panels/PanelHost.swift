@@ -5,11 +5,10 @@ import SwiftUI
 struct PanelContentView: View {
     let model: EditorModel
     let panelID: String
-    var isSheet = false
 
     var body: some View {
         switch panelID {
-        case "panel.project": MediaBrowserView(model: model, isSheet: isSheet)
+        case "panel.project": MediaBrowserView(model: model)
         case "panel.effects": EffectsPanel(model: model)
         case "panel.effectControls": EffectControlsPanel(model: model)
         case "panel.audioTrackMixer": AudioMixerPanel(model: model)
@@ -21,18 +20,18 @@ struct PanelContentView: View {
 /// Horizontally scrolling chips for the primary panels plus a "More" menu with the rest (`panel.<id>`).
 struct PanelTabs: View {
     let model: EditorModel
-    /// iPad's inline column: a chip toggles nothing (one panel is always showing). Sheets toggle the sheet closed.
-    var togglesClosed = false
 
     var body: some View {
         let current = model.activePanel ?? "panel.project"
-        ScrollView(.horizontal) {
-            GlassEffectContainer(spacing: 6) {
-                HStack(spacing: 6) {
-                    ForEach(PanelUI.primary, id: \.self) { id in
+        ScrollViewReader { reader in
+            ScrollView(.horizontal) {
+                GlassEffectContainer(spacing: 6) {
+                    HStack(spacing: 6) {
+                    // A panel opened through Window or More remains a visible, selectable tab in the sheet.
+                    ForEach(PanelUI.primary + (PanelUI.primary.contains(current) ? [] : [current]), id: \.self) { id in
                         let selected = current == id
                         Button {
-                            uiOpenPanel(id, model: model, toggle: togglesClosed)
+                            uiOpenPanel(id, model: model)
                         } label: {
                             HStack(spacing: 5) {
                                 Image(systemName: PanelUI.symbol(id))
@@ -45,14 +44,24 @@ struct PanelTabs: View {
                         .glassToggle(selected)
                         .accessibilityAddTraits(selected ? .isSelected : [])
                         .accessibilityIdentifier(id)
+                        .id(id)
                     }
                     MorePanelsMenu(model: model)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
                 }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
+            }
+            .scrollIndicators(.hidden)
+            .onChange(of: model.activePanel, initial: true) { _, id in
+                guard let id else { return }
+                withAnimation(.smooth) { reader.scrollTo(id, anchor: .center) }
+            }
+            .onChange(of: model.panelRevealTick) { _, _ in
+                guard let id = model.activePanel else { return }
+                withAnimation(.smooth) { reader.scrollTo(id, anchor: .center) }
             }
         }
-        .scrollIndicators(.hidden)
     }
 }
 
@@ -125,7 +134,7 @@ struct PanelSheet: View {
             .padding(.horizontal, 16)
             .padding(.top, 8)
             PanelTabs(model: model)
-            PanelContentView(model: model, panelID: id, isSheet: false)
+            PanelContentView(model: model, panelID: id)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .accessibilityElement(children: .contain)

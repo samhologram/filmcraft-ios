@@ -25,6 +25,10 @@ final class EditorModel {
     var activeTool: String = "tool.selection"
     /// "panel.effectControls" ... (`PanelInfo.id`) shown in the inspector / sheet.
     var activePanel: String?
+    /// Bumps even when reopening the selected panel so horizontal tab strips reveal it again.
+    var panelRevealTick = 0
+    /// Notifies the scene-local iPad dock that Window > Workspaces > Reset was requested.
+    var panelDockResetTick = 0
     var isPlaying = false
     /// Timeline zoom.
     var pixelsPerSecond: Double = 80 { didSet { pixelsPerSecond = Self.clampZoom(pixelsPerSecond) } }

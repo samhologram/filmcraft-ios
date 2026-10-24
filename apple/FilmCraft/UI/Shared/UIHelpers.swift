@@ -61,6 +61,7 @@ enum PanelUI {
     }
     model.activePanel = id
     model.inspectorVisible = true
+    model.panelRevealTick += 1
 }
 
 // MARK: Tools

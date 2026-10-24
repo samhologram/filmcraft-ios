@@ -11,7 +11,7 @@ struct MediaBrowserSheet: View {
 
     var body: some View {
         NavigationStack {
-            MediaBrowserView(model: model, isSheet: true)
+            MediaBrowserView(model: model)
                 .navigationTitle("Add Media")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -33,7 +33,6 @@ struct MediaBrowserSheet: View {
 /// project's media, and a Files import. Nothing is "imported" first for Photos items.
 struct MediaBrowserView: View {
     let model: EditorModel
-    var isSheet = false
 
     private enum Source { case photos, project }
 

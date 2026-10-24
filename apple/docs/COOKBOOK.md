@@ -19,14 +19,28 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
   idle), marking unbuilt work "WIP". Commit to `main`, push to `origin` with `[skip ci]` in every message (no CI/CD runs; any workflow
   is `workflow_dispatch` only), using the git protocol the user's GitHub auth is set up for. Never commit build output
   (`apple/.gitignore`: `target/`, derived data, `.xcresult`, xcframeworks, generated `.xcodeproj`).
+- The user explicitly reaffirmed authorization on 2026-10-24 to `git push origin main` on all five CraftApps
+  forks for this resumption's commits bearing `[skip ci]`.
+- Before every commit, review fork-owned code for dead code and delete confirmed unused implementations,
+  helpers and obsolete routes. Run a cross-app pass now (user request, 2026-10-24). Check dynamic catalog,
+  bridge, SwiftUI and test references before deletion; preserve upstream ownership boundaries and rerun
+  the relevant build/checks after cleanup. Refresh this cookbook copy after the pass and before committing.
 - Work unattended: if a tool needs a permission click (e.g. a simulator panel), switch to a route that doesn't
   (`simctl`, XCUITest) instead of waiting.
-- Models: opus orchestrates each app (one session per app; several apps run in parallel); sonnet for all code; haiku
-  for review/search swarms, simulator driving and feature test passes. Give each subagent a self-contained brief,
+- Models (user update, 2026-10-24): Sol orchestrates each app through a dedicated subagent; the root supervises
+  the whole workspace. Luna handles review/search swarms and tests. Terra is preferred for code; while Terra is
+  unavailable in the subagent tool, the user explicitly authorizes Sol for code. These roles supersede the older
+  Opus/Sonnet/Haiku references below. Phase projects to respect the four-agent limit and shared build/simulator budget.
+  Give each subagent a self-contained brief,
   the files it owns, the files it must not touch, its own `-derivedDataPath` and its own simulators (named with the
-  app prefix, e.g. `<App>-iPad`). Parallel apps share the disk: budget ~10 GB each and check `df` before heavy builds.
+  app prefix, e.g. `<App>-iPad`). The shared-device rule in §7 supersedes this older per-agent simulator advice.
+  Parallel apps share the disk: budget ~10 GB each and check `df` before heavy builds.
+- Test-role update (user, 2026-10-24): GPT Astra designs user-story-based cases for each platform (iPadOS and
+  iOS), authors the test cases and performs UX review passes. Use Sol if Astra is unavailable. Luna executes
+  those cases and reports reproducible bugs and UX issues with evidence. Reuse meaningful existing tests,
+  cover real user workflows and adaptive layouts, and do not count absent/skipped/unreached workflows as passes.
 - Parallel apps share the CPU: never let every app compile at once (8 cores, load ~650 = all stall). The orchestrator
-  runs `buildsched.sh`, which pauses (SIGSTOP, never kills) lower-priority apps' compilers and resumes them on spare
+  runs `tools/buildsched.sh`, which pauses (SIGSTOP, never kills) lower-priority apps' compilers and resumes them on spare
   cores; priority in `.build.priority`, closest-to-testing first. App sessions run heavy builds in the background,
   never kill a paused (`T`) build, and do non-compile work while paused.
 - Token-heavy work first: CPU is the bottleneck, agents are not. Front-load writing, review swarms, test authoring
@@ -43,7 +57,8 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
   as re-editable adjustment data. Never make the user "import" what the platform already holds.
 - Document apps own a folder: "<App>" in iCloud Drive (ubiquity container, document scope public, app icon in Files),
   falling back to On My iPad › <App> (`UIFileSharingEnabled` + `LSSupportsOpeningDocumentsInPlace`) when iCloud is
-  unavailable (free Personal Team, signed out). It is the launch browser's default location; new documents go there.
+  unavailable (free Personal Team, signed out). New documents and copies go there; iOS has no API to set the launch
+  browser's starting folder, so don't promise that (users pin the folder in Files' Favourites).
 - Opening a foreign format (PNG, JPEG, HEIC, PSD, SVG…) creates an editable copy in the native format in that folder,
   saved as soon as an edit happens (leaving the editor must leave a file); the original is never modified. Reopening
   the same original reopens its copy (remember source → copy) instead of making "name 2". Export/Share writes
@@ -153,6 +168,16 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
   properties, layers…) exists and opens from the right-side panel menu and the Window menu; panels can be added,
   hidden, collapsed and stacked/reordered in the inspector column, and the arrangement persists per app. A panel
   entry that opens nothing is a bug: tours must open and act on every panel. iPhone shows them as sheets.
+- Shared panel UX (user decision, 2026-10-24): PhotoCraft's panel dock is the interaction reference for all five
+  apps. Use its persistent, selectable tab groups and add/hide/stack behavior, adapted to each app's category.
+  Opening a panel selects its tab and keeps that tab visible (scroll the tab strip to it when necessary).
+  Consolidate panel actions into the dock and panel headers; avoid parallel floating panel buttons such as the
+  previous LightCraft layout. Preserve Window/menu-bar access and the dedicated full-screen exit control.
+- Story-pass findings to design in from the start (LightCraft run 1): panel headers stay pinned (never scroll above
+  the window top with their actions); every cell/thumbnail has an accessibility label and id; ids on rows inside a
+  SwiftUI `List`/`DisclosureGroup`/`Menu` aren't reliably exposed — put them on the row content or use labels; paste
+  of settings must mark the target as edited; context submenus need ids. System toolbar/menu rows under 44 pt are
+  not defects.
 - Panel-owned actions live in their panel's header, as on the desktop (e.g. "add adjustment layer", new layer,
   mask, delete in the Layers panel), not in the global toolbar.
 - Launch: for `DocumentGroup`, `DocumentGroupLaunchScene` with system background and the app icon in an overlay laid out
@@ -217,6 +242,10 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
   write-back through the platform API, not just the UI.
 - Run: `xcodebuild test-without-building -destination id=<sim> -resultBundlePath x.xcresult`; export attachments with
   `xcresulttool export attachments` (`manifest.json` maps names to files). Downscale screenshots before reading them.
+- For focused no-screenshot test loops, pass `-collect-test-diagnostics never`: Xcode's automatic failure
+  diagnostics can otherwise hold the shared simulator for up to 600 seconds after the test has ended. Preserve
+  assertions, logs, hierarchy and notes; distinguish completed tests from aborted runs, and clean up only the
+  current run's orphan diagnostic processes before releasing its simulator lock.
 - "Unable to Import Document (DocumentManager error 1)" = stale simulator state: `simctl erase` and rerun (re-seed).
 - One booted simulator on the machine at a time, across parallel app sessions: take the shared lock
   (`mkdir <workspace>/.sim.lock`) before booting, shut down and release after each run; never hold it across a build.

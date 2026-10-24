@@ -3,92 +3,92 @@
 # `excluded` (reason). `swift = "TODO"` is a placeholder the orchestrator fills in.
 
 [tool.selection]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.trackSelectForward]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.trackSelectBackward]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.ripple]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.rolling]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.rateStretch]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.remix]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.razor]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.slip]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.slide]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.pen]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.rectangle]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.ellipse]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.hand]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.zoom]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.type]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [tool.verticalType]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift + UI/Phone/PhoneEditorView.swift; selection via Core/EditorModel+Commands.swift, behavior coverage pending"
 [panel.project]
-swift = "TODO"
+swift = "UI/Panels/MediaBrowserView.swift; iPad dock header Import"
 [panel.mediaBrowser]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.libraries]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.info]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.effects]
-swift = "TODO"
+swift = "UI/Panels/EffectsPanel.swift"
 [panel.markers]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.history]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.source]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.effectControls]
-swift = "TODO"
+swift = "UI/Panels/EffectControlsPanel.swift"
 [panel.audioClipMixer]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.metadata]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.program]
-swift = "TODO"
+swift = "UI/Shared/ViewerView.swift fixed zone; dock entry is GenericPanel"
 [panel.timeline]
-swift = "TODO"
+swift = "UI/Timeline/TimelineView.swift fixed zone; dock entry is GenericPanel"
 [panel.tools]
-swift = "TODO"
+swift = "UI/Shared/TopBarControls.swift tool menu; dock entry is GenericPanel"
 [panel.audioMeters]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.audioTrackMixer]
-swift = "TODO"
+swift = "UI/Panels/AudioMixerPanel.swift"
 [panel.lumetriColor]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.lumetriScopes]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.essentialGraphics]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.essentialSound]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.textToSpeech]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.properties]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.text]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.events]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.progress]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.referenceMonitor]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.timecode]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"
 [panel.projectNotes]
-swift = "TODO"
+swift = "UI/Panels/GenericPanel.swift; catalog commands only, dedicated content pending"

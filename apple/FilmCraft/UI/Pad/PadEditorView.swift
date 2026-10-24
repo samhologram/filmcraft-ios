@@ -55,17 +55,7 @@ struct PadEditorView: View {
     }
 
     private var panelColumn: some View {
-        let id = model.activePanel ?? "panel.project"
-        return VStack(spacing: 0) {
-            PanelTabs(model: model)
-            Divider()
-            PanelContentView(model: model, panelID: id)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("inspector")
+        PanelDockView(model: model)
     }
 
     private var viewerColumn: some View {
@@ -117,7 +107,6 @@ struct PadEditorView: View {
         ToolbarItemGroup(placement: .topBarTrailing) {
             UndoRedoButtons(model: model)
             ToolbarToolMenu(model: model)
-            AddMediaButton(model: model)
             PaletteButton(model: model)
             ShareButton(model: model)
             OverflowMenu(model: model, includesPanels: !showsPanelColumn)
