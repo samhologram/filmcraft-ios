@@ -347,3 +347,21 @@ timeline ("Add Media Here").
 **Current gaps (as of a2698f0b).** No "New Project from Media" flow (new documents start empty); no `PhotosPicker`
 fallback for denied/limited access; no drag & drop or paste import; no bin targeting (media goes to the project root);
 Import lives in the global toolbar (`addMedia`), not the Media panel header.
+
+**Native decoding (cookbook §0b).** Imported video/audio decode with AVFoundation/VideoToolbox (H.264, HEVC incl.
+10-bit/HDR, ProRes, AAC/ALAC; hardware-accelerated) and still images with ImageIO (HEIC, JPEG, PNG, RAW/ProRAW via
+CoreImage); the engine's pure-Rust decoders are used only for its own formats or where no native decoder exists.
+Design: the bridge declares UniFFI foreign traits implemented in Swift (`Media/NativeDecoders.swift`):
+`NativeVideoDecoder` (open(path) → info {w, h, fps, duration, hasAudio}; frame(at: ticks, maxW, maxH) → RGBA8/BGRA
+`Data` via `AVAssetImageGenerator`/`AVAssetReader` + `VTDecompressionSession`), `NativeAudioDecoder` (open; read(from:
+ticks, frames, sampleRate) → interleaved f32 via `AVAssetReader`/`AVAudioFile`), `NativeImageDecoder` (ImageIO). Swift
+registers them once at launch with `register_native_decoders(video:audio:image:)`; the bridge wraps them as
+`filmcraft_codecs` decoder factories ahead of the built-ins (the same hook `filmcraft-platform` uses for VideoToolbox
+on macOS, `crates/codecs/src/lib.rs` factory registry), so `MediaPool::open_file` picks them for the formats they
+claim. Export likewise may register an AVAssetWriter H.264/HEVC + AAC encoder through `filmcraft_export::register_encoder`
+(fall back to the engine's pure-Rust H.264/AAC). Never call Swift decoders on the audio realtime thread; frames cross
+the bridge as `Data`. Upstream note: `filmcraft-platform`'s VideoToolbox code is `cfg(target_os = "macos")` only —
+propose widening it to iOS upstream; until then the bridge-side registration is the fork's workaround.
+
+**Gap (as of 23e7868a).** All decode is pure Rust (the bridge doesn't use `filmcraft-platform`; no native decoder or
+encoder registration exists).
