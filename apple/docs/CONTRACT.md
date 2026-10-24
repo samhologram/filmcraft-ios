@@ -27,6 +27,11 @@ Upstream files (everything outside `apple/`, `FORK.md`, `.github/workflows/apple
 - **A project is a document**: `DocumentGroup` + `ReferenceFileDocument` over upstream's `.fcproj` (UTF-8 JSON
   envelope `{"format":"filmcraft.project",…}`). UTType `ca.hologram.filmcraft.project`, extension `fcproj`,
   conforms to `public.json`, exported by the app. Launch = `DocumentGroupLaunchScene`.
+- **Storage (cookbook §0b)**: projects live in iCloud Drive › FilmCraft (ubiquity container, `NSUbiquitousContainers`),
+  falling back to On My iPad › FilmCraft without iCloud; that folder is the launch browser's default. Opening a
+  foreign file (FCPXML/EDL/OTIO/Premiere XML via the engine's interchange importers, or a movie/image) creates a native
+  `.fcproj` there, saved on first edit, the original untouched; reopening the same original reopens that project
+  (map original bookmark → project in `UserDefaults`). Export/Share renders out. *Gap: not implemented.*
 - **Photos is the primary media source** inside the editor (PhotoKit, not `PhotosPicker` copies): the media browser
   lists the user's videos/photos and albums; adding one never shows an "import" step. The engine needs a file path,
   so the asset is materialized into the **media cache** `Library/Caches/FilmCraftMedia/PH-<b64url(localIdentifier)>.<ext>`

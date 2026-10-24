@@ -41,6 +41,13 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
   via PhotoKit, Music, Files…): open and edit items in place, keep the engine's catalog as an internal cache keyed by the
   platform's ids, and write results back through the platform's non-destructive editing API with the engine's settings
   as re-editable adjustment data. Never make the user "import" what the platform already holds.
+- Document apps own a folder: "<App>" in iCloud Drive (ubiquity container, document scope public, app icon in Files),
+  falling back to On My iPad › <App> (`UIFileSharingEnabled` + `LSSupportsOpeningDocumentsInPlace`) when iCloud is
+  unavailable (free Personal Team, signed out). It is the launch browser's default location; new documents go there.
+- Opening a foreign format (PNG, JPEG, HEIC, PSD, SVG…) creates an editable copy in the native format in that folder,
+  saved as soon as an edit happens (leaving the editor must leave a file); the original is never modified. Reopening
+  the same original reopens its copy (remember source → copy) instead of making "name 2". Export/Share writes
+  foreign formats back out. Library apps (LightCraft) instead write back to the platform library.
 - When the user's wording is ambiguous ("use the internal library"), ask once with concrete options; then re-brief
   every running agent on the decision immediately.
 - Follow Apple's HIG for iPad and iPhone as closely as possible: system components, materials (Liquid Glass),
@@ -165,6 +172,12 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
 - Simulator runtime: `xcodebuild -downloadPlatform iOS`; reject device-locked runtimes; `simctl create` devices.
 - Disk: check `df` first. One Rust target dir (≈ 5–11 GB); delete `target/debug` after host gates; one derived-data dir
   per agent (≈ 3 GB); delete `.xcresult` bundles once read.
+- Every agent cleans its build caches when they're no longer needed, before it reports done or goes idle:
+  `target/debug` and `target/*/*/incremental` after host gates; its own derived-data dir when it finishes (keep only
+  the app's one current `build/dd`); `.xcresult`, exported attachments and temp media once read; device builds keep
+  only the signed `.app` plus the reinstall script (delete `dd-device` intermediates and `target/aarch64-apple-ios`
+  after install); `~/Library/Developer/Xcode/DerivedData/<App>*` from Xcode GUI runs; scratch copies. Never delete
+  another app's or another running agent's dirs. Apps on hold keep at most one `build/dd` and the iOS target libs.
 - No local Xcode: push and read macOS CI errors, after checking the Actions budget.
 
 ## 6. Compile loop
@@ -208,6 +221,9 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
 - One booted simulator on the machine at a time, across parallel app sessions: take the shared lock
   (`mkdir <workspace>/.sim.lock`) before booting, shut down and release after each run; never hold it across a build.
   Builds use `generic/platform=iOS Simulator` and never boot a device. If the Mac lags, `simctl shutdown all`.
+  Take the lock only in the same process that runs the tests (bounded wait loop, release in a trap/finally step);
+  never leave a detached background waiter: an orphaned loop grabs the lock later with no one using it and blocks
+  every other app. A lock older than its run's timeout with no test process alive is stale and may be removed.
 - Parallel apps share one iPad and one iPhone simulator; don't `simctl create` per-app devices. After every run,
   `simctl uninstall` the app and its UITests runner, so no compiled app stays installed when not needed.
 - Close Simulator.app while tests run; drive and inspect with XCUITest and `simctl io screenshot`, not by hand.
@@ -217,6 +233,11 @@ parallel apps, `main` + `[skip ci]` pushes, upstream sync script, live simulator
   suites, tours, feature pass); results go back as a defects list. iPhone tests stay in the app session.
 - Test live: attach the built-in iOS Simulator panel to each booted device and tell the orchestrator which one. When the user asks for no
   screenshots, verify through the accessibility tree, XCUITest assertions, notes and logs instead.
+- User-story pass (haiku): write classical stories (the category's everyday jobs, e.g. open → crop → export) and
+  advanced ones (multi-panel, keyboard/Pencil, undo chains, import → edit → share, narrow window, dark/light) as
+  XCUITests; each story records pass/fail, taps-to-do and a UX/UI review from the accessibility hierarchy (frames
+  off-screen or clipped, targets < 44 pt, truncated/wrapped labels, missing ids, modal where inline would do, custom
+  colours) — no screenshots. Skip what earlier suites already proved; list what was skipped and why.
 - Once stable, a haiku feature pass over all features: one agent per feature area (every tool, panel, command and
   document/library flow) drives the built-in simulator (iPad, then iPhone) and reports defects with evidence; sonnet
   fixes; rerun until clean. The final report has a per-feature pass/fail table.
