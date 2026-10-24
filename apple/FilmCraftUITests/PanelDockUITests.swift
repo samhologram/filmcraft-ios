@@ -16,13 +16,13 @@ final class PanelDockUITests: FilmCraftUITestCase {
                                     "This story requires the wide iPad window; portrait exercises the sheet story")
 
         XCTAssertTrue(tap("menu.panels"), "The dock add menu must remain accessible")
-        XCTAssertTrue(tap("panel.projectNotes"), "A panel near the end of the catalog must be addable")
+        XCTAssertTrue(tapMenuItemScrolling("panel.projectNotes"), "A panel near the end of the catalog must be addable")
         XCTAssertTrue(element("panel.projectNotes.header").waitForExistence(timeout: 5))
         XCTAssertTrue(hit("panel.projectNotes") != nil, "Opening a panel must reveal its selected tab")
 
         // A second show of the selected panel must select/expand it, never toggle it off.
         XCTAssertTrue(tap("menu.panels"))
-        XCTAssertTrue(tap("panel.projectNotes"))
+        XCTAssertTrue(tapMenuItemScrolling("panel.projectNotes"))
         XCTAssertTrue(element("panel.projectNotes.header").exists)
         XCTAssertTrue(hit("panel.projectNotes") != nil)
 
@@ -33,13 +33,13 @@ final class PanelDockUITests: FilmCraftUITestCase {
         collapse?.tap()
         XCTAssertFalse(element("panel.projectNotes.header").exists, "Collapsed content must be hidden")
         XCTAssertTrue(tap("menu.panels"))
-        XCTAssertTrue(tap("panel.projectNotes"))
+        XCTAssertTrue(tapMenuItemScrolling("panel.projectNotes"))
         XCTAssertTrue(element("panel.projectNotes.header").waitForExistence(timeout: 5), "Reopening expands the group")
 
         XCTAssertTrue(tap("panel.panel.projectNotes.hide"), "Hide belongs in the panel header")
         XCTAssertFalse(element("panel.projectNotes.header").exists)
         XCTAssertTrue(tap("menu.panels"))
-        XCTAssertTrue(tap("panel.projectNotes"), "A hidden panel can be added again")
+        XCTAssertTrue(tapMenuItemScrolling("panel.projectNotes"), "A hidden panel can be added again")
         XCTAssertTrue(element("panel.projectNotes.header").waitForExistence(timeout: 5))
 
         XCTAssertTrue(tap("menu.panels"))
@@ -61,7 +61,7 @@ final class PanelDockUITests: FilmCraftUITestCase {
         func openNotes() {
             XCTAssertTrue(tap("menu.more"), "More must remain reachable without the wide dock")
             XCTAssertTrue(tap("menu.panels"), "More must expose Panels")
-            XCTAssertTrue(tap("panel.projectNotes"), "Secondary panels must be reachable from Panels")
+            XCTAssertTrue(tapMenuItemScrolling("panel.projectNotes"), "Secondary panels must be reachable from Panels")
             XCTAssertTrue(element("panelClose").waitForExistence(timeout: 5), "The panel must open as a sheet")
             let tab = app.buttons.matching(identifier: "panel.projectNotes").firstMatch
             let visible = NSPredicate { _, _ in tab.exists && tab.isSelected && self.canTap(tab) }

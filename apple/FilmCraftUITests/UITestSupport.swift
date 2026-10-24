@@ -32,6 +32,18 @@ class FilmCraftUITestCase: XCTestCase {
         prefix = "\(isPad ? "ipad" : "iphone")-\(mode)"
         notes = []
         XCUIDevice.shared.appearance = dark ? .dark : .light
+        if acceptPhotosPrompt {
+            // The prompt can arrive after demoReady. Handle only FilmCraft's Photos request; XCTest's default
+            // interruption handler otherwise chooses Don't Allow during the first unrelated toolbar tap.
+            addUIInterruptionMonitor(withDescription: "FilmCraft Photos access") { alert in
+                guard alert.label.localizedCaseInsensitiveContains("photo") else { return false }
+                for title in ["Allow Full Access", "Allow Access to All Photos", "Allow"] {
+                    let button = alert.buttons[title].firstMatch
+                    if button.exists { button.tap(); return true }
+                }
+                return false
+            }
+        }
         app = XCUIApplication()
         var args = ["-FilmCraftDemo", "-FilmCraftResetState", "-FilmCraftUITest", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         if dark { args += ["-AppleInterfaceStyle", "Dark"] }
@@ -40,14 +52,15 @@ class FilmCraftUITestCase: XCTestCase {
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 60), "The app did not launch")
         XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 60), "The app has no window")
         if waitForReady { waitForDemoReady(acceptPhotosPrompt: acceptPhotosPrompt) }
+        if acceptPhotosPrompt { _ = allowPhotosPromptIfShown() }
     }
 
     /// Hard failure when the demo never becomes ready (the marker appears after the first program frame).
     func waitForDemoReady(timeout: TimeInterval = 60, acceptPhotosPrompt: Bool = true) {
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
-            if element("demoReady").exists { return }
             if acceptPhotosPrompt { _ = allowPhotosPromptIfShown() }
+            if element("demoReady").exists { return }
             pause(1)
         }
         XCTFail("demoReady did not appear within \(Int(timeout)) s (demo seeding or the first frame never finished)")
@@ -58,8 +71,10 @@ class FilmCraftUITestCase: XCTestCase {
     @discardableResult
     func allowPhotosPromptIfShown() -> Bool {
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let alert = springboard.alerts.firstMatch
+        guard alert.exists, alert.label.localizedCaseInsensitiveContains("photo") else { return false }
         for label in ["Allow Full Access", "Allow Access to All Photos", "Allow"] {
-            let button = springboard.alerts.buttons[label].firstMatch
+            let button = alert.buttons[label].firstMatch
             if button.exists {
                 button.tap()
                 return true
@@ -151,6 +166,24 @@ class FilmCraftUITestCase: XCTestCase {
         guard let target = hit(identifier) else { note("\(identifier): exists but is not hittable (off screen or covered)"); return false }
         target.tap()
         return true
+    }
+
+    /// A catalog panel near the bottom of a native Menu can be outside its initial accessibility viewport.
+    /// Scroll only the presented menu (or its popover scroll view), with a fixed bound and a real hittability check.
+    @discardableResult
+    func tapMenuItemScrolling(_ identifier: String) -> Bool {
+        if let item = hit(identifier) { item.tap(); return true }
+        for _ in 0..<12 {
+            let menus = app.menus.allElementsBoundByIndex
+            let scroller = menus.last(where: { canTap($0) })
+                ?? app.scrollViews.allElementsBoundByIndex.last(where: { canTap($0) })
+            guard let scroller else { break }
+            scroller.swipeUp(velocity: .slow)
+            pause(0.25)
+            if let item = hit(identifier) { item.tap(); return true }
+        }
+        note("\(identifier): not reachable after bounded native-menu scroll")
+        return false
     }
 
     func pause(_ seconds: TimeInterval) {
