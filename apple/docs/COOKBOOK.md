@@ -6,6 +6,13 @@ Sol orchestration/code, Astra-only story/test drafting, Luna validation, token e
 PhotoCraft-inspired panel UX, pre-commit dead-code review and the latest physical-iPad installation request.
 
 ## 0. Rules
+- TESTS STOPPED by explicit user request (2026-10-24). Do not run or queue unit, UI, cargo tests,
+  test enumeration, or build-for-testing until the user explicitly resumes testing. Cancel running tests
+  gracefully and release simulator locks/shut down simulators. Code fixes, app-only builds, installation and
+  source synchronization may continue; record which changes remain untested rather than bypassing this pause.
+- Source-update authorization (2026-10-24): fetch updates from the original source repositories (`upstream`),
+  checkpoint current fork edits first, then merge upstream/main (never rebase), preserving native Apple work.
+  Do not change engine working trees underneath an active build. The test pause overrides sync test gates.
 - Fork code only in `apple/` (+ CI workflow, `FORK.md`). Never edit upstream files. Upstream stays mergeable (remote
   `upstream`, merge, never rebase). Fork is `<app>-ios` on the user's GitHub; its `main` is our main branch.
   `FORK.md` documents the remotes, the "only `apple/` is ours" rule and the sync command
