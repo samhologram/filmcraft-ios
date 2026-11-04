@@ -525,10 +525,10 @@ impl ProjectHandle {
                 let h = &mut i.session.history;
                 h.limit = g.limit;
                 // the snapshot before the gesture's first edit stands for the whole gesture
-                let first = h.undo.get(g.base).map(|e| e.1.clone());
-                if let Some(first) = first {
+                let first = h.undo.get(g.base).map(|e| (e.1.clone(), e.2.clone()));
+                if let Some((first, origin)) = first {
                     h.undo.truncate(g.base);
-                    h.undo.push((g.label, first));
+                    h.undo.push((g.label, first, origin));
                 }
                 while h.undo.len() > h.limit && !h.undo.is_empty() {
                     h.undo.remove(0);
